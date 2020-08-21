@@ -8,19 +8,29 @@ import snake
 img_c = snake.img_src.copy() # Source image
 img_gray = cv2.cvtColor(img_c, cv2.COLOR_BGR2GRAY)
 
-img_contour = img_gray.copy()
-contour = triangulation.preprocess(img_gray)
-keypoints = triangulation.keypoints(img_gray, contour)
-triangles = triangulation.triangulate(contour, keypoints)
-bones_c = snake.bones_frames[0]
+img_tmp = img_c.copy()
+contour = triangulation.contour(img_gray)
+cv2.polylines(img_tmp, [contour.astype(np.int32)], True, (0,0,255))
+cv2.imshow('Contour',img_tmp)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
-cv2.polylines(img_contour, [contour.astype(np.int32)], True, (0,0,255))
+keypoints = triangulation.keypoints(img_gray, contour)
+triangles_unconstrained, edges = triangulation.triangulate(contour, keypoints)
+img_tmp = img_c.copy()
+for triangle in triangles_unconstrained:
+    cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
+cv2.imshow('Triangulation',img_tmp)
+cv2.waitKey(0)
+
+triangles = triangulation.constrain(contour, triangles_unconstrained, edges)
+img_tmp = img_c.copy()
 for triangle in triangles:
-    cv2.polylines(snake.img_src, [triangle.astype(np.int32)], True, (0,0,255))
+    cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
+bones_c = snake.bones_frames[0]
 for bone in bones_c:
-    cv2.polylines(snake.img_src, [bone.reshape((2,2)).astype(np.int32)], True, (255,0,0), 2)
-cv2.imshow('contour',img_contour)
-cv2.imshow('current',snake.img_src)
+    cv2.polylines(img_tmp, [bone.reshape((2,2)).astype(np.int32)], True, (255,0,0), 2)
+cv2.imshow('Constrained Triangulation with Bones',img_tmp)
 cv2.waitKey(0)
 
 for i in range(len(snake.bones_frames)):
@@ -34,6 +44,7 @@ for i in range(len(snake.bones_frames)):
     rect_offset = 5 # Offset bounding rectangle so won't pick black pixle
     for triangle_c, triangle_n in zip(triangles, triangles_next):
         # Get signle bounding rectangle for current and next
+        # Take out of image into account
         (x,y,w,h) = cv2.boundingRect(np.concatenate((triangle_c,triangle_n),axis=0))
         x -= rect_offset
         y -= rect_offset
@@ -64,7 +75,7 @@ for i in range(len(snake.bones_frames)):
         indices_offset = (indices[0]+y-rect_n[1], indices[1]+x-rect_n[0])
         img_n[indices_offset]=img_triangle_n[indices]
 
-    cv2.imshow('next',img_n)
+    cv2.imshow('Frame',img_n)
     cv2.waitKey(0)
 
 cv2.destroyAllWindows()

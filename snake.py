@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-img_src = cv2.imread('snake_big.jpg', 1)
+img_src = cv2.imread('img/snake.jpg', 1)
 
 # Bone parameters for each frame
 # xw yw thetaw theta1 a1 theta2 a2 theta3 a3

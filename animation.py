@@ -69,7 +69,9 @@ def animate(bones_c, bones_n, triangles):
                 w = np.zeros(num_bones)
                 for i, bone in enumerate(bones_c):
                     dist = calcPointLineDistance(point,bone[0:2],bone[2:4])
-                    w[i] = 1/(dist**2) # w = 1/d^2
+                    # w[i] = 1/(dist**2) # w = 1/d^2
+                    C = 0.05
+                    w[i] = np.exp(-C*dist) # w =e^(-Cd)
 
                 w = w/np.sum(w) # Make sure sum of weights is 1
                 weights_and_position[point_key] = {'weight': w}

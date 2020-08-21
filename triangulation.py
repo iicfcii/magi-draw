@@ -90,14 +90,15 @@ def swap_diagonal(edge, triangles):
 
     return edge_new
 
-def preprocess(img_gray):
+def contour(img_gray):
     # Find offset contour
     ret,img_bin = cv2.threshold(img_gray,50,255,cv2.THRESH_BINARY_INV)
 
     # Dialate image to offset contour
     img_morph = cv2.dilate(img_bin,cv2.getStructuringElement(cv2.MORPH_RECT,(10,10)))
     # Close holes
-    img_morph = cv2.morphologyEx(img_morph, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT,(20,20)))
+    img_morph = cv2.morphologyEx(img_morph, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(40,40)))
+    # img_morph = cv2.morphologyEx(img_morph, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT,(20,20)))
     # cv2.imshow('morph',img_morph)
     # cv2.waitKey(0)
 
@@ -141,6 +142,7 @@ def keypoints(img_gray, contour):
 def triangulate(contour, keypoints):
     contour_simple = contour
     keypoints_inside = keypoints
+
     # Form triangles
     points = np.append(contour_simple,keypoints_inside,axis=0)
     rect = cv2.boundingRect(points)
@@ -148,17 +150,19 @@ def triangulate(contour, keypoints):
     subdiv.insert(points.tolist())
     edges = subdiv.getEdgeList()
     triangles = subdiv.getTriangleList()
+    triangles = triangles.reshape((-1,3,2))
 
-    # Constrain triangles
-    triangles = triangles.reshape((-1,3,2)) # Reshape to match points
+    return (triangles, edges)
 
+def constrain(contour, triangles, edges):
+    contour_simple = contour
     # Find intersecting edges
     edges_intersects = []
     for edge in edges:
         # Skip if both end points are not on contour
-        first_point_is_contour = len((contour_simple == edge[0:2]).all(axis=1).nonzero()[0]) == 1
-        second_point_is_contour = len((contour_simple == edge[2:4]).all(axis=1).nonzero()[0]) == 1
-        if not first_point_is_contour and not second_point_is_contour: continue
+        # first_point_is_contour = len((contour_simple == edge[0:2]).all(axis=1).nonzero()[0]) == 1
+        # second_point_is_contour = len((contour_simple == edge[2:4]).all(axis=1).nonzero()[0]) == 1
+        # if not first_point_is_contour and not second_point_is_contour: continue
 
         match = match_triangle(edge, triangles)
         if len(match) == 0:
@@ -187,7 +191,7 @@ def triangulate(contour, keypoints):
             else:
                 edges_new.append(edge_new)
         else:
-            edges_new.append(edge)
+            edges_intersects.append(edge)
 
     # TODO: Check delaunay triangulation criterion for new edges(omit edge on contour)
     # Refer to: A FAST ALGORITHM FOR GENERATING CONSTRAINED DELAUNAY TRIANGULATIONS
