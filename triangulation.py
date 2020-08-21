@@ -93,13 +93,13 @@ def triangulate(img_color):
     # Find offset contour
     ret,img_bin = cv2.threshold(img_gray,50,255,cv2.THRESH_BINARY_INV)
 
-    img_dilation = cv2.dilate(img_bin,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)),iterations=1)
+    img_dilation = cv2.dilate(img_bin,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)),iterations=2)
     contours, hierarchy = cv2.findContours(img_dilation,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
     contour = contours[0]
     contour_simple = cv2.approxPolyDP(contour,3,True).reshape((-1,2)).astype(np.int32)
     print("Contour Points Number", len(contour_simple))
-    for pt in contour_simple:
-        cv2.circle(img_color,(pt[0],pt[1]),2,(255, 0, 0),cv2.FILLED)
+    # for pt in contour_simple:
+    #     cv2.circle(img_color,(pt[0],pt[1]),2,(255, 0, 0),cv2.FILLED)
 
     # Find feature points
     fast = cv2.FastFeatureDetector_create(threshold=10)
