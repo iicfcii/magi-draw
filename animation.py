@@ -92,7 +92,8 @@ def animate(bones_c, bones_n, triangles):
     for point_key in weights_and_position.keys():
         point_c = np.array([[point_key[0]],[point_key[1]],[1]])
         point_n = transformations @ point_c
-        point_n = np.transpose(point_n).reshape((2,3))[:,0:2]
+        # print(point_n)
+        point_n = np.transpose(point_n).reshape((-1,3))[:,0:2]
         w = weights_and_position[point_key]['weight']
         position = w @ point_n
         # print(point_n)
