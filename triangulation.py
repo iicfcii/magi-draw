@@ -56,26 +56,27 @@ def intersection_contour(edge, contour):
 # Match is (i, j)
 def match_triangle(edge, triangles):
     # Match points for each triangle
-    match = np.logical_or(triangles == edge[0:2], triangles == edge[2:4]).all(axis=2)
+    # match = np.logical_or(triangles == edge[0:2], triangles == edge[2:4]).all(axis=2)
+    match = np.logical_or((triangles == edge[0:2]).all(axis=2), (triangles == edge[2:4]).all(axis=2))
     # Count triangle with both points and get index
     match = (np.count_nonzero(match,axis=1) == 2).nonzero()[0]
     return match
+# print(match_triangle(np.array([0,0,1,1]),np.array([[[0,0],[1,1],[1,0]],[[0,0],[1,1],[0,1]],[[0,0],[2,2],[0,1]]])))
 
-def swap_diagonal(edge, triangles):
-    match = match_triangle(edge, triangles)
 
-    if len(match) != 2: return None # TODO: Should not happen?
-
+def swap_diagonal(edge, match, triangles):
     triangle_a = triangles[match[0],:,:].copy()
     triangle_b = triangles[match[1],:,:].copy()
 
     # Swap first point of edge in first triangle
     first_point_index_a = (triangle_a == edge[0:2]).all(axis=1).nonzero()[0][0]
-    other_point_index_a = np.logical_and((triangle_b != edge[0:2]),(triangle_b != edge[2:4])).any(axis=1).nonzero()[0][0]
+    other_point_index_a = np.logical_and((triangle_b != edge[0:2]).any(axis=1),(triangle_b != edge[2:4]).any(axis=1)).nonzero()[0][0]
+    # other_point_index_a = np.logical_and((triangle_b != edge[0:2]),(triangle_b != edge[2:4])).any(axis=1).nonzero()[0][0]
 
     # Swap second point of edge in second triangle
     first_point_index_b = (triangle_b == edge[2:4]).all(axis=1).nonzero()[0][0]
-    other_point_index_b = np.logical_and((triangle_a != edge[0:2]),(triangle_a != edge[2:4])).any(axis=1).nonzero()[0][0]
+    other_point_index_b = np.logical_and((triangle_a != edge[0:2]).any(axis=1),(triangle_a != edge[2:4]).any(axis=1)).nonzero()[0][0]
+    # other_point_index_b = np.logical_and((triangle_a != edge[0:2]),(triangle_a != edge[2:4])).any(axis=1).nonzero()[0][0]
 
     edge_new = triangle_b[other_point_index_a,:]
     edge_new = np.concatenate((edge_new,triangle_a[other_point_index_b,:]))
@@ -108,13 +109,14 @@ def contour(img_gray):
         print('More than one contour')
     contour = contours[0]
     contour_simple = cv2.approxPolyDP(contour,3,True).reshape((-1,2)).astype(np.int32)
+
+    # Add points to controur
+
     print("Contour Points Number", len(contour_simple))
 
     return contour_simple
 
-# TODO: Can try uniform key points inside contour, more like mesh
 def keypoints(img_gray, contour):
-    contour_simple = contour
     # Find feature points
     fast = cv2.FastFeatureDetector_create(threshold=10)
     keypoints = fast.detect(img_gray,None)
@@ -123,11 +125,11 @@ def keypoints(img_gray, contour):
     # and too close to each other
     keypoints_inside = []
     for kp in keypoints:
-        dist = cv2.pointPolygonTest(contour_simple,kp.pt,True)
-        if dist > 20:
+        dist = cv2.pointPolygonTest(contour,kp.pt,True)
+        if dist > 5:
             tooClose = False
             for pt in keypoints_inside:
-                if (pt[0]-kp.pt[0])**2+(pt[1]-kp.pt[1])**2 < 20**2:
+                if (pt[0]-kp.pt[0])**2+(pt[1]-kp.pt[1])**2 < 5**2:
                     tooClose = True
                     break
 
@@ -139,12 +141,33 @@ def keypoints(img_gray, contour):
 
     return keypoints_inside
 
-def triangulate(contour, keypoints):
-    contour_simple = contour
-    keypoints_inside = keypoints
+def keypoints_uniform(img_gray, contour):
+    (x,y,w,h) = cv2.boundingRect(contour)
+    dist = 10
+    xs = np.arange(x,x+w,dist)+(w%dist)/2
+    ys = np.arange(y,y+h,dist)+(h%dist)/2
+    xs_tmp = np.repeat(xs, ys.shape[0]).reshape(1,-1)
+    ys_tmp = np.tile(ys, (1,xs.shape[0]))
+    keypoints = np.transpose(np.concatenate((xs_tmp, ys_tmp), axis=0)).astype(np.int32)
 
+    return keypoints
+
+    # # Filter feature points too close to the contour
+    # keypoints_inside = []
+    # for kp in keypoints:
+    #     dist = cv2.pointPolygonTest(contour,tuple(kp),True)
+    #     if dist > 5:
+    #         keypoints_inside.append(kp)
+    #
+    # keypoints_inside = np.array(keypoints_inside,dtype=np.int32)
+    # print("Key points inside number", len(keypoints_inside))
+    #
+    # return keypoints_inside
+
+
+def triangulate(contour, keypoints):
     # Form triangles
-    points = np.append(contour_simple,keypoints_inside,axis=0)
+    points = np.append(contour,keypoints,axis=0)
     rect = cv2.boundingRect(points)
     subdiv = cv2.Subdiv2D(rect)
     subdiv.insert(points.tolist())
@@ -154,14 +177,13 @@ def triangulate(contour, keypoints):
 
     return (triangles, edges)
 
-def constrain(contour, triangles, edges):
-    contour_simple = contour
+def constrain(contour, triangles, edges, img):
     # Find intersecting edges
     edges_intersects = []
     for edge in edges:
         # Skip if both end points are not on contour
-        # first_point_is_contour = len((contour_simple == edge[0:2]).all(axis=1).nonzero()[0]) == 1
-        # second_point_is_contour = len((contour_simple == edge[2:4]).all(axis=1).nonzero()[0]) == 1
+        # first_point_is_contour = len((contour == edge[0:2]).all(axis=1).nonzero()[0]) == 1
+        # second_point_is_contour = len((contour == edge[2:4]).all(axis=1).nonzero()[0]) == 1
         # if not first_point_is_contour and not second_point_is_contour: continue
 
         match = match_triangle(edge, triangles)
@@ -171,27 +193,41 @@ def constrain(contour, triangles, edges):
         else:
             if len(match) != 1:
                 # Inside contour
-                if intersection_contour(edge, contour_simple):
+                if intersection_contour(edge, contour):
                     edges_intersects.append(edge)
             else:
                 # On contour
                 pass
 
     # Swap intersecting edges
-    # TODO: Needs a timeout for this section
-    # Contour too thin may cause wrong triangulation
     edges_new = []
     while len(edges_intersects) != 0:
+        # img_tmp = img.copy()
+        # for triangle in triangles:
+        #     cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
+        # for edge in edges_intersects:
+        #     cv2.polylines(img_tmp, [edge.reshape((2,2)).astype(np.int32)], True, (0,0,0))
+        # for point in contour:
+        #     cv2.circle(img_tmp, tuple(point.astype(np.int32)), 2, (255,0,0), thickness=-1)
+        # cv2.imshow('Triangulation',img_tmp)
+        # cv2.waitKey(0)
+
         edge = edges_intersects.pop(0)
-        edge_new = swap_diagonal(edge, triangles)
+        match = match_triangle(edge, triangles)
+        if len(match) != 2:
+            continue
+        edge_new = swap_diagonal(edge, match, triangles)
 
         if edge_new is not None:
-            if intersection_contour(edge_new, contour_simple):
+            if intersection_contour(edge_new, contour):
                 edges_intersects.append(edge_new)
             else:
                 edges_new.append(edge_new)
         else:
             edges_intersects.append(edge)
+
+    # If the newly formed quadrilateral is a triangle, remove both triangles
+    # and add the bigger ones
 
     # TODO: Check delaunay triangulation criterion for new edges(omit edge on contour)
     # Refer to: A FAST ALGORITHM FOR GENERATING CONSTRAINED DELAUNAY TRIANGULATIONS
@@ -206,7 +242,7 @@ def constrain(contour, triangles, edges):
 
         outside = False
         for pt in mid_points:
-            dist = cv2.pointPolygonTest(contour_simple,(pt[0],pt[1]),False)
+            dist = cv2.pointPolygonTest(contour,(pt[0],pt[1]),False)
             if dist == -1.0: outside = True
 
         if not outside: triangles_inside.append(triangle)

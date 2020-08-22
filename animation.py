@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import triangulation
-import snake
 
 # Calculate transformation matrix from two line segments
 # Line segment represents the positive x axis wrt world
@@ -55,6 +54,11 @@ def calcPointLineDistance(p, x, y):
 # print(calcPointLineDistance(np.array([0,0]),np.array([1,0]),np.array([0,1])))
 # print(calcPointLineDistance(np.array([0,0]),np.array([1,1]),np.array([0,1])))
 
+def calcPointPointDistance(x, y):
+    xy = y-x
+    d = np.sqrt(xy[0]**2+xy[1]**2)
+    return d
+
 def animate(bones_c, bones_n, triangles):
     num_bones = len(bones_c)
 
@@ -68,10 +72,10 @@ def animate(bones_c, bones_n, triangles):
             else:
                 w = np.zeros(num_bones)
                 for i, bone in enumerate(bones_c):
-                    dist = calcPointLineDistance(point,bone[0:2],bone[2:4])
+                    # dist = calcPointLineDistance(point,bone[0:2],bone[2:4])
+                    dist = calcPointPointDistance(point,(bone[0:2]+bone[2:4])/2)
                     # w[i] = 1/(dist**2) # w = 1/d^2
-                    C = 0.05
-                    w[i] = np.exp(-C*dist) # w =e^(-Cd)
+                    w[i] = np.exp(-0.02*dist) # w =e^(-Cd)
 
                 w = w/np.sum(w) # Make sure sum of weights is 1
                 weights_and_position[point_key] = {'weight': w}
@@ -87,7 +91,7 @@ def animate(bones_c, bones_n, triangles):
         # print(t @ np.array([[bone_c[2]],[bone_c[3]],[1]]))
 
         transformations.append(t)
-    # print(transformations)
+
     transformations = np.concatenate(transformations, axis=0) # Shape 3n*3
 
     # Calculate next frame position for each point
@@ -113,3 +117,51 @@ def animate(bones_c, bones_n, triangles):
         triangles_n.append(triangle_n.astype(np.float32))
 
     return triangles_n
+
+def warp(img, triangles, triangles_next):
+    img_tmp = img.copy()
+    for triangle in triangles_next:
+        cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
+    cv2.imshow('triangles_next',img_tmp)
+    cv2.waitKey(0)
+
+
+    rect_n = cv2.boundingRect(np.concatenate(triangles_next,axis=0)) # x, y, w, h
+    img_n = np.zeros((rect_n[3],rect_n[2],3), np.uint8)
+    img_n[:,:] = (255,255,255)
+
+    rect_offset = 5 # Offset bounding rectangle so won't pick black pixle
+    for triangle_c, triangle_n in zip(triangles, triangles_next):
+        # Get signle bounding rectangle for current and next
+        # Take out of image into account
+        (x,y,w,h) = cv2.boundingRect(np.concatenate((triangle_c,triangle_n),axis=0))
+        x -= rect_offset
+        y -= rect_offset
+        w += rect_offset*2
+        h += rect_offset*2
+        x_valid = np.maximum(x,0)
+        y_valid = np.maximum(y,0)
+        w_valid = np.minimum(w,img.shape[1]-x)
+        h_valid = np.minimum(h,img.shape[0]-y)
+
+        # Warp from current to next
+        # Calculate coordinate wrt to bounding rectangle
+        triangle_c_offset = triangle_c-np.tile(np.array([x,y]),(3,1)).astype(np.float32)
+        triangle_n_offset = triangle_n-np.tile(np.array([x,y]),(3,1)).astype(np.float32)
+
+        img_triangle_c = np.zeros((h,w,3), np.uint8)
+        # print(img_triangle_c[y_valid-y:y_valid-y+h_valid-(y_valid-y), x_valid-x:x_valid-x+w_valid-(x_valid-x)].shape)
+        # print(img[y_valid-y+y:y_valid+h_valid-(y_valid-y), x_valid-x+x:x_valid+w_valid-(x_valid-x)].shape)
+        img_triangle_c[y_valid-y:h_valid, x_valid-x:w_valid] = img[y_valid:h_valid+y, x_valid:w_valid+x]
+
+        warp_mat  = cv2.getAffineTransform(triangle_c_offset, triangle_n_offset)
+        img_triangle_n = cv2.warpAffine(img_triangle_c, warp_mat, (w, h))
+
+        # Copy the pixle value from warpped image to the entire image
+        mask_img_triangle_n = np.zeros((h, w), np.uint8)
+        cv2.fillConvexPoly(mask_img_triangle_n, triangle_n_offset.astype(np.int32), 255)
+        indices = (mask_img_triangle_n > 0).nonzero()
+        indices_offset = (indices[0]+y-rect_n[1], indices[1]+x-rect_n[0])
+        img_n[indices_offset]=img_triangle_n[indices]
+
+    return img_n
