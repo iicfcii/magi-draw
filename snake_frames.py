@@ -10,15 +10,7 @@ img_gray = cv2.cvtColor(img_src, cv2.COLOR_BGR2GRAY)
 
 img_tmp = img_src.copy()
 contour = triangulation.contour(img_gray)
-# keypoints = triangulation.keypoints(img_gray, contour)
 keypoints = triangulation.keypoints_uniform(img_gray, contour)
-# img_tmp = img_src.copy()
-# for point in contour:
-#     cv2.circle(img_tmp, tuple(point.astype(np.int32)), 2, (255,0,0), thickness=-1)
-# for point in keypoints:
-#     cv2.circle(img_tmp, tuple(point.astype(np.int32)), 2, (0,0,0), thickness=-1)
-# cv2.imshow('Key points',img_tmp)
-# cv2.waitKey(0)
 
 triangles_unconstrained, edges = triangulation.triangulate(contour, keypoints)
 img_tmp = img_src.copy()
@@ -26,6 +18,8 @@ for triangle in triangles_unconstrained:
     cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
 for point in contour:
     cv2.circle(img_tmp, tuple(point.astype(np.int32)), 2, (255,0,0), thickness=-1)
+for point in keypoints:
+    cv2.circle(img_tmp, tuple(point.astype(np.int32)), 2, (0,255,0), thickness=-1)
 cv2.imshow('Triangulation',img_tmp)
 cv2.waitKey(0)
 
@@ -35,7 +29,10 @@ for triangle in triangles:
     cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
 bones_default = snake.bones_default
 for bone in bones_default:
-    cv2.polylines(img_tmp, [bone.reshape((2,2)).astype(np.int32)], True, (255,0,0), 2)
+    bone = bone.astype(np.int32)
+    cv2.polylines(img_tmp, [bone.reshape((2,2))], True, (255,0,0), 2)
+    cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
+    cv2.circle(img_tmp, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
 cv2.imshow('Constrained Triangulation with Bones',img_tmp)
 cv2.waitKey(0)
 

@@ -72,18 +72,27 @@ bones_default = bones(bones_default_parameters)
 
 bones_frames_parameters = [
     (60,100,0,0,80,0,100,0,100,0,80),
-    (60,100,0,30,80,-60,100,60,100,-60,80)
+    (60,100,0,15,80,-30,100,30,100,-30,80),
+    (60,100,0,30,80,-60,100,60,100,-60,80),
+    (60,100,0,15,80,-30,100,30,100,-30,80),
+    (60,100,0,0,80,0,100,0,100,0,80),
+    (60,100,0,-15,80,30,100,-30,100,30,80),
+    (60,100,0,-30,80,60,100,-60,100,60,80),
+    (60,100,0,-15,80,30,100,-30,100,30,80),
+    (60,100,0,0,80,0,100,0,100,0,80),
 ]
 bones_frames = []
 for para in bones_frames_parameters:
     bones_frames.append(bones(para))
 
-# img_tmp = img.copy()
-# for bone in bones_frames[1]:
-#     bone = bone.astype(np.int32)
-#     cv2.polylines(img_tmp, [bone.reshape((2,2)).astype(np.int32)], True, (255,0,0), 2)
-#     cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
-#     cv2.circle(img_tmp, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
-# cv2.imshow('Snake',img_tmp)
-# cv2.waitKey(0)
+
+# for frame in bones_frames:
+#     img_tmp = img.copy()
+#     for bone in frame:
+#         bone = bone.astype(np.int32)
+#         cv2.polylines(img_tmp, [bone.reshape((2,2)).astype(np.int32)], True, (255,0,0), 2)
+#         cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
+#         cv2.circle(img_tmp, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
+#     cv2.imshow('Snake',img_tmp)
+#     cv2.waitKey(0)
 # cv2.destroyAllWindows()

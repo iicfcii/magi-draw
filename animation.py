@@ -119,13 +119,6 @@ def animate(bones_c, bones_n, triangles):
     return triangles_n
 
 def warp(img, triangles, triangles_next):
-    img_tmp = img.copy()
-    for triangle in triangles_next:
-        cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
-    cv2.imshow('triangles_next',img_tmp)
-    cv2.waitKey(0)
-
-
     rect_n = cv2.boundingRect(np.concatenate(triangles_next,axis=0)) # x, y, w, h
     img_n = np.zeros((rect_n[3],rect_n[2],3), np.uint8)
     img_n[:,:] = (255,255,255)
@@ -163,5 +156,7 @@ def warp(img, triangles, triangles_next):
         indices = (mask_img_triangle_n > 0).nonzero()
         indices_offset = (indices[0]+y-rect_n[1], indices[1]+x-rect_n[0])
         img_n[indices_offset]=img_triangle_n[indices]
+
+        # TODO: Generate anchor position
 
     return img_n
