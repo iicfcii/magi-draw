@@ -106,7 +106,6 @@ def contour(img_gray):
         # TODO: merge or dialate
         print('More than one contour')
     contour = cv2.approxPolyDP(contours[0],3,True).reshape((-1,2)).astype(np.int32)
-    print("Contour Points Number", len(contour))
 
     # Add points to controur
     points = []
@@ -129,6 +128,7 @@ def contour(img_gray):
         points.append(p2.reshape((1,2)))
 
     contour = np.concatenate(points)
+    print("Contour Points Number", len(contour))
 
     return contour
 

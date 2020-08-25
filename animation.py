@@ -54,36 +54,64 @@ def calcPointLineDistance(p, x, y):
 # print(calcPointLineDistance(np.array([0,0]),np.array([1,0]),np.array([0,1])))
 # print(calcPointLineDistance(np.array([0,0]),np.array([1,1]),np.array([0,1])))
 
+def calcPointProjectionOutsideLine(p, x, y):
+    xp = p-x
+    xy = y-x
+
+    dot = xp[0]*xy[0]+xp[1]*xy[1]
+    l = np.sqrt(xy[0]**2+xy[1]**2)
+    proj = dot/l
+
+    if proj > l: return 1 # Outside y
+    if proj < 0: return -1 # Outside x
+    return 0 # On line
+# print(calcPointProjectionOutsideLine(np.array([0,0]),np.array([1,0]),np.array([0,1])))
+# print(calcPointProjectionOutsideLine(np.array([0,0]),np.array([1,0]),np.array([2,-1])))
+# print(calcPointProjectionOutsideLine(np.array([0,0]),np.array([1,1]),np.array([0,1])))
+# print(calcPointProjectionOutsideLine(np.array([0,0]),np.array([1,1]),np.array([1,2])))
+# print(calcPointProjectionOutsideLine(np.array([0,0]),np.array([1,1]),np.array([2,1])))
+# print(calcPointProjectionOutsideLine(np.array([0,0]),np.array([-2,1]),np.array([-1,1])))
+
 def calcPointPointDistance(x, y):
     xy = y-x
     d = np.sqrt(xy[0]**2+xy[1]**2)
     return d
 
-def animate(bones_c, bones_n, triangles):
-    num_bones = len(bones_c)
+def calcWeight(p, bone):
+    outside = calcPointProjectionOutsideLine(p, bone[0:2], bone[2:4])
 
-    # Calculate weight for each point wrt each bone in first frame
-    weights_and_position = {}
+    if outside == 1:
+        d = calcPointPointDistance(p, bone[2:4])
+    elif outside == -1:
+        d = calcPointPointDistance(p, bone[0:2])
+    else:
+        d = calcPointLineDistance(p,bone[0:2], bone[2:4])
+    weight = np.exp(-0.05*d) # w =e^(-Cd)
+
+    return weight
+
+# TODO: Points near bone should have weights closer to 1
+def calcWeights(bones_default, triangles):
+    weights = {}
     for triangle in triangles:
         for point in triangle:
             point_key = tuple(point)
-            if point_key in weights_and_position:
+            if point_key in weights:
                 pass
             else:
-                w = np.zeros(num_bones)
-                for i, bone in enumerate(bones_c):
-                    # dist = calcPointLineDistance(point,bone[0:2],bone[2:4])
-                    dist = calcPointPointDistance(point,(bone[0:2]+bone[2:4])/2)
-                    # w[i] = 1/(dist**2) # w = 1/d^2
-                    w[i] = np.exp(-0.02*dist) # w =e^(-Cd)
-
+                w = np.zeros(len(bones_default))
+                for i, bone in enumerate(bones_default):
+                    w[i] = calcWeight(point, bone)
                 w = w/np.sum(w) # Make sure sum of weights is 1
-                weights_and_position[point_key] = {'weight': w}
+                weights[point_key] = {'weight': w}
 
+    return weights
+
+def animate(bones_default, bones_n, triangles, weights):
     # Calculate transformation matrix to next frame for each bone
     transformations = []
-    for i in range(num_bones):
-        bone_c = bones_c[i]
+    for i in range(len(bones_default)):
+        bone_c = bones_default[i]
         bone_n = bones_n[i]
         t = calcTransMatBetweenFrame(bone_c,bone_n) # Bone is always along positive x of its own coordinate system
         # print(bone_n)
@@ -95,33 +123,37 @@ def animate(bones_c, bones_n, triangles):
     transformations = np.concatenate(transformations, axis=0) # Shape 3n*3
 
     # Calculate next frame position for each point
-    for point_key in weights_and_position.keys():
+    for point_key in weights.keys():
         point_c = np.array([[point_key[0]],[point_key[1]],[1]])
         point_n = transformations @ point_c
         # print(point_n)
         point_n = np.transpose(point_n).reshape((-1,3))[:,0:2]
-        w = weights_and_position[point_key]['weight']
+        w = weights[point_key]['weight']
         position = w @ point_n
         # print(point_n)
         # print(w)
         # print(position)
-        weights_and_position[point_key]['position'] = position
+        weights[point_key]['position'] = position
 
     triangles_n = []
     for triangle in triangles:
         triangle_n = np.zeros((3,2))
         for i, point in enumerate(triangle):
             point_key = tuple(point)
-            triangle_n[i,:] = weights_and_position[point_key]['position']
+            triangle_n[i,:] = weights[point_key]['position']
 
         triangles_n.append(triangle_n.astype(np.float32))
 
     return triangles_n
 
-def warp(img, triangles, triangles_next):
+def warp(img, triangles, triangles_next, bone):
     rect_n = cv2.boundingRect(np.concatenate(triangles_next,axis=0)) # x, y, w, h
     img_n = np.zeros((rect_n[3],rect_n[2],3), np.uint8)
     img_n[:,:] = (255,255,255)
+
+    # Anchor position wrt to image
+    # Anchor is the first point of first bone
+    anchor = np.array([bone[0]-rect_n[0],bone[1]-rect_n[1]],dtype=np.int32)
 
     rect_offset = 5 # Offset bounding rectangle so won't pick black pixle
     for triangle_c, triangle_n in zip(triangles, triangles_next):
@@ -157,6 +189,4 @@ def warp(img, triangles, triangles_next):
         indices_offset = (indices[0]+y-rect_n[1], indices[1]+x-rect_n[0])
         img_n[indices_offset]=img_triangle_n[indices]
 
-        # TODO: Generate anchor position
-
-    return img_n
+    return (img_n, anchor)
