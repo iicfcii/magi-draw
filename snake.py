@@ -80,11 +80,23 @@ bones_frames_parameters = [
     (60,100,0,-30,80,60,100,-60,100,60,80),
     (60,100,0,-15,80,30,100,-30,100,30,80),
     (60,100,0,0,80,0,100,0,100,0,80),
+    (60,100,0,0,80,0,100,30,100,-30,80),
+    (60,100,0,0,80,0,100,0,100,0,80),
+    (60,100,0,0,80,0,100,-30,100,30,80),
+    (60,100,0,0,80,0,100,0,100,0,80),
 ]
 bones_frames = []
 for para in bones_frames_parameters:
     bones_frames.append(bones(para))
 
+# img_bones = np.zeros(img.shape, np.uint8)
+# img_bones[:,:] = (255,255,255)
+# for bone in bones_default:
+#     bone = bone.astype(np.int32)
+#     cv2.polylines(img_bones, [bone.reshape((2,2)).astype(np.int32)], True, (255,0,0), 2)
+#     cv2.circle(img_bones, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
+#     cv2.circle(img_bones, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
+# cv2.imwrite('img/snake_bones.jpg',img_bones)
 
 # for frame in bones_frames:
 #     img_tmp = img.copy()

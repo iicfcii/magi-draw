@@ -32,6 +32,7 @@ def calcTransMat(current, next):
 
 def calcTransMatBetweenFrame(x_c, x_n):
     # Length may be useful for scaling
+    # TODO: consider scaling
     length = np.sqrt((x_c[3]-x_c[1])**2+(x_c[2]-x_c[0])**2)
     x_world = [0,0,length,0]
 
@@ -114,6 +115,7 @@ def animate(bones_default, bones_n, triangles, weights):
         bone_c = bones_default[i]
         bone_n = bones_n[i]
         t = calcTransMatBetweenFrame(bone_c,bone_n) # Bone is always along positive x of its own coordinate system
+        # print(t)
         # print(bone_n)
         # print(t @ np.array([[bone_c[0]],[bone_c[1]],[1]]))
         # print(t @ np.array([[bone_c[2]],[bone_c[3]],[1]]))

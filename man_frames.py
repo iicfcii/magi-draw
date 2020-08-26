@@ -2,10 +2,10 @@ import numpy as np
 import cv2
 import triangulation
 import animation
-import snake
+import man
 
 # Prepare source image, triangulation, and default bones
-img_src = snake.img.copy() # Source image
+img_src = man.img.copy() # Source image
 img_gray = cv2.cvtColor(img_src, cv2.COLOR_BGR2GRAY)
 
 img_tmp = img_src.copy()
@@ -24,7 +24,7 @@ cv2.imshow('Triangulation',img_tmp)
 cv2.waitKey(0)
 
 triangles = triangulation.constrain(contour, triangles_unconstrained, edges, img_src)
-bones_default = snake.bones_default
+bones_default = man.bones_default
 weights = animation.calcWeights(bones_default,triangles)
 img_tmp = img_src.copy()
 for triangle in triangles:
@@ -35,13 +35,13 @@ for bone in bones_default:
     cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
     cv2.circle(img_tmp, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
 for point_key in weights.keys():
-    val = 255*weights[point_key]['weight'][1]
+    val = 255*weights[point_key]['weight'][4]
     cv2.circle(img_tmp, point_key, 2, (0,val,0), thickness=-1)
 cv2.imshow('Constrained Triangulation with Bones',img_tmp)
 cv2.waitKey(0)
 
-for i in range(len(snake.bones_frames)):
-    bones_n = snake.bones_frames[i]
+for i in range(len(man.bones_frames)):
+    bones_n = man.bones_frames[i]
     triangles_next = animation.animate(bones_default,bones_n,triangles,weights)
     img_n, anchor = animation.warp(img_src, triangles, triangles_next,bones_n[0])
 
@@ -56,5 +56,6 @@ for i in range(len(snake.bones_frames)):
     #     cv2.circle(img_n, tuple(anchor), 5, (0,0,0), thickness=-1)
     cv2.imshow('Frame',img_n)
     cv2.waitKey(0)
+    cv2.destroyWindow('Frame')
 
 cv2.destroyAllWindows()

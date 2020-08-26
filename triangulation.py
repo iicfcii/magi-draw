@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-MESH_DIST = 20
+MESH_DIST = 15
 
 # Whether line (o1, p1) and (o2, p2) intersects
 # End points touching means not intersect
@@ -95,9 +95,12 @@ def swap_diagonal(edge, match, triangles):
 
 def contour(img_gray):
     # Offset contour and close holes
-    ret,img_bin = cv2.threshold(img_gray,50,255,cv2.THRESH_BINARY_INV)
-    img_morph = cv2.dilate(img_bin,cv2.getStructuringElement(cv2.MORPH_RECT,(10,10)))
-    img_morph = cv2.morphologyEx(img_morph, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(40,40)))
+    # TODO: Threshold needs to be automatic
+    ret,img_bin = cv2.threshold(img_gray,100,255,cv2.THRESH_BINARY_INV)
+    img_morph = cv2.dilate(img_bin,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)))
+    # cv2.imshow('morph',img_morph)
+    # cv2.waitKey(0)
+    img_morph = cv2.morphologyEx(img_morph, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10)))
     # cv2.imshow('morph',img_morph)
     # cv2.waitKey(0)
 
