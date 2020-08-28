@@ -100,19 +100,20 @@ def swap_diagonal(edge, match, triangles):
 def contour(img_gray):
     # Offset contour and close holes
     # TODO: Threshold needs to be automatic
-    ret,img_bin = cv2.threshold(img_gray,100,255,cv2.THRESH_BINARY_INV)
+    ret,img_bin = cv2.threshold(img_gray,127,255,cv2.THRESH_BINARY_INV)
+
+    img_morph = cv2.morphologyEx(img_bin, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10)))
+    cv2.imshow('morph',img_morph)
+    cv2.waitKey(0)
     img_morph = cv2.dilate(img_bin,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)))
-    # cv2.imshow('morph',img_morph)
-    # cv2.waitKey(0)
-    img_morph = cv2.morphologyEx(img_morph, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10)))
-    # cv2.imshow('morph',img_morph)
-    # cv2.waitKey(0)
+    cv2.imshow('morph',img_morph)
+    cv2.waitKey(0)
 
     contours, hierarchy = cv2.findContours(img_morph,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     if len(contours) != 1:
         # TODO: merge or dialate
         print('More than one contour')
-    contour = cv2.approxPolyDP(contours[0],3,True).reshape((-1,2)).astype(np.int32)
+    contour = cv2.approxPolyDP(contours[0],1,True).reshape((-1,2)).astype(np.int32)
 
     # Add points to controur
     points = []
@@ -155,7 +156,10 @@ def keypoints_uniform(img_gray, contour):
             if (kp[0]-pt[0])**2+(kp[1]-pt[1])**2 < (MESH_DIST/2)**2:
                 tooClose = True
                 continue
-        if not tooClose:
+
+        outside = cv2.pointPolygonTest(contour, tuple(kp), False) == -1
+
+        if not tooClose and not outside:
             keypoints.append(kp)
 
     keypoints = np.asarray(keypoints, dtype=np.int32)

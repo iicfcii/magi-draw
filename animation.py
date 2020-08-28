@@ -100,15 +100,13 @@ def calcPointProjectionOutsideLine(p, x, y):
 # print(calcPointProjectionOutsideLine(np.array([0,0]),np.array([1,1]),np.array([2,1])))
 # print(calcPointProjectionOutsideLine(np.array([0,0]),np.array([-2,1]),np.array([-1,1])))
 
-def calcWeight(p, bone):
-    outside = calcPointProjectionOutsideLine(p, bone[0:2], bone[2:4])
+def calcWeight(p, bone, triangles):
+    path = findPath(p, bone, triangles)
+    if len(path) == 0: print('No path found!')
 
-    if outside == 1:
-        d = calcPointPointDistance(p, bone[2:4])
-    elif outside == -1:
-        d = calcPointPointDistance(p, bone[0:2])
-    else:
-        d = calcPointLineMinDistance(p,bone[0:2], bone[2:4])
+    d = 0
+    for i in range(1,len(path)):
+        d = d + calcPointPointDistance(path[i-1,:],path[i,:])
     weight = np.exp(-0.05*d) # w =e^(-Cd)
 
     return weight
@@ -124,59 +122,59 @@ def calcWeights(bones_default, triangles):
             else:
                 w = np.zeros(len(bones_default))
                 for i, bone in enumerate(bones_default):
-                    w[i] = calcWeight(point, bone)
+                    w[i] = calcWeight(point, bone, triangles)
                 w = w/np.sum(w) # Make sure sum of weights is 1
                 weights[point_key] = {'weight': w}
 
     return weights
 
 def findPath(start, bone, triangles):
-    startKey = tuple(start)
-    next = [startKey] # sort by f, lowest index is 0
+    start_key = tuple(start)
+    next = [start_key] # sort by f, lowest index is 0
     parent = {}
-    g = {startKey: 0} # cost to current
-    f = {startKey: 0+calcPointLineDistance(start,bone[0:2],bone[2:4])} # g + h
+    g = {start_key: 0} # cost to current
+    f = {start_key: 0+calcPointLineDistance(start,bone[0:2],bone[2:4])} # g + h
 
     while len(next) != 0:
-        currentKey = next.pop(0)
-        current = np.asarray(currentKey)
+        current_key = next.pop(0)
+        current = np.asarray(current_key)
         if calcPointLineDistance(current,bone[0:2],bone[2:4]) < triangulation.MESH_DIST:
-            path = [currentKey]
-            while currentKey in parent:
-                path.append(parent[currentKey])
-                currentKey = parent[currentKey]
+            path = [current_key]
+            while current_key in parent:
+                path.append(parent[current_key])
+                current_key = parent[current_key]
             return np.array(path)
 
 
         # Get all neighbors
         match = triangulation.match_point2triangle(current, triangles)
-        neighborKeys = [] # list of point tuples
+        neighbor_keys = [] # list of point tuples
         for i in match:
             triangle = triangles[i]
             # cv2.polylines(img, [triangle.astype(np.int32)], True, (0,0,255))
             for point in triangle:
                 if not (point == current).all():
-                    neighborKey = tuple(point)
-                    if neighborKey not in neighborKeys:
-                        neighborKeys.append(neighborKey)
+                    neighbor_key = tuple(point)
+                    if neighbor_key not in neighbor_keys:
+                        neighbor_keys.append(neighbor_key)
 
-        for neighborKey in neighborKeys:
-            neighbor = np.asarray(neighborKey)
-            g_neighbor = g[currentKey] + calcPointPointDistance(current, neighbor)
+        for neighbor_key in neighbor_keys:
+            neighbor = np.asarray(neighbor_key)
+            g_neighbor = g[current_key] + calcPointPointDistance(current, neighbor)
 
-            if neighborKey not in g or g_neighbor < g[neighborKey]:
-                parent[neighborKey] = currentKey
-                g[neighborKey] = g_neighbor
-                f[neighborKey] = g_neighbor + calcPointLineDistance(neighbor,bone[0:2],bone[2:4])
+            if neighbor_key not in g or g_neighbor < g[neighbor_key]:
+                parent[neighbor_key] = current_key
+                g[neighbor_key] = g_neighbor
+                f[neighbor_key] = g_neighbor + calcPointLineDistance(neighbor,bone[0:2],bone[2:4])
 
-                if neighborKey not in next:
+                if neighbor_key not in next:
                     # Make sure low f is in the front of the list
                     index = 0
                     for i in range(len(next)-1,-1,-1):
-                        if f[neighborKey] > f[next[i]]:
+                        if f[neighbor_key] > f[next[i]]:
                             index = i+1
                             break
-                    next.insert(index, neighborKey)
+                    next.insert(index, neighbor_key)
     return None
 
 def animate(bones_default, bones_n, triangles, weights):
