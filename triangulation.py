@@ -56,15 +56,19 @@ def intersection_contour(edge, contour):
 # Triangles in shape (n, 3, 2)
 # Edge in shape (1, 4)
 # Match is (i, j)
-def match_triangle(edge, triangles):
+def match_edge2triangle(edge, triangles):
     # Match points for each triangle
-    # match = np.logical_or(triangles == edge[0:2], triangles == edge[2:4]).all(axis=2)
     match = np.logical_or((triangles == edge[0:2]).all(axis=2), (triangles == edge[2:4]).all(axis=2))
     # Count triangle with both points and get index
     match = (np.count_nonzero(match,axis=1) == 2).nonzero()[0]
     return match
-# print(match_triangle(np.array([0,0,1,1]),np.array([[[0,0],[1,1],[1,0]],[[0,0],[1,1],[0,1]],[[0,0],[2,2],[0,1]]])))
+# print(match_edge2triangle(np.array([0,0,1,1]),np.array([[[0,0],[1,1],[1,0]],[[0,0],[1,1],[0,1]],[[0,0],[2,2],[0,1]]])))
 
+def match_point2triangle(point, triangles):
+    match = (triangles == point).all(axis=2)
+    match = (np.count_nonzero(match,axis=1) == 1).nonzero()[0]
+    return match
+# print(match_point2triangle(np.array([0,0]),np.array([[[0,0],[1,1],[1,0]],[[0,0],[1,1],[0,1]],[[4,7],[2,2],[0,1]]])))
 
 def swap_diagonal(edge, match, triangles):
     triangle_a = triangles[match[0],:,:].copy()
@@ -180,7 +184,7 @@ def constrain(contour, triangles, edges, img):
         # second_point_is_contour = len((contour == edge[2:4]).all(axis=1).nonzero()[0]) == 1
         # if not first_point_is_contour and not second_point_is_contour: continue
 
-        match = match_triangle(edge, triangles)
+        match = match_edge2triangle(edge, triangles)
         if len(match) == 0:
             # Outside contour
             pass
@@ -208,7 +212,7 @@ def constrain(contour, triangles, edges, img):
         # cv2.waitKey(0)
 
         edge = edges_intersects.pop(0)
-        match = match_triangle(edge, triangles)
+        match = match_edge2triangle(edge, triangles)
         if len(match) != 2:
             continue
         edge_new = swap_diagonal(edge, match, triangles)

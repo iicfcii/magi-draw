@@ -42,8 +42,13 @@ def calcTransMatBetweenFrame(x_c, x_n):
 
     return t_c2w @ t_n2c @ t_w2c
 
+def calcPointPointDistance(x, y):
+    xy = y-x
+    d = np.sqrt(xy[0]**2+xy[1]**2)
+    return d
+
 # Minimum distance between a point and line
-def calcPointLineDistance(p, x, y):
+def calcPointLineMinDistance(p, x, y):
     xp = p-x
     xy = y-x
 
@@ -52,8 +57,30 @@ def calcPointLineDistance(p, x, y):
     d = np.abs(cross/np.sqrt(xy[0]**2+xy[1]**2))
 
     return d
+# print(calcPointLineMinDistance(np.array([0,0]),np.array([1,0]),np.array([0,1])))
+# print(calcPointLineMinDistance(np.array([0,0]),np.array([1,1]),np.array([0,1])))
+
+def calcPointLineDistance(p, x, y):
+    xp = p-x
+    xy = y-x
+
+    dot = xp[0]*xy[0]+xp[1]*xy[1]
+    l = np.sqrt(xy[0]**2+xy[1]**2)
+    proj = dot/l
+
+    if proj > l:
+        # Outside y
+        return calcPointPointDistance(p, y)
+    if proj < 0:
+        # Outside x
+        return calcPointPointDistance(p, x)
+
+    return calcPointLineMinDistance(p, x, y)
 # print(calcPointLineDistance(np.array([0,0]),np.array([1,0]),np.array([0,1])))
 # print(calcPointLineDistance(np.array([0,0]),np.array([1,1]),np.array([0,1])))
+# print(calcPointLineDistance(np.array([0,0]),np.array([1,0]),np.array([2,0])))
+# print(calcPointLineDistance(np.array([0,0]),np.array([-1,0]),np.array([-2,0])))
+# print(calcPointLineDistance(np.array([0,0]),np.array([1,1]),np.array([2,1])))
 
 def calcPointProjectionOutsideLine(p, x, y):
     xp = p-x
@@ -73,11 +100,6 @@ def calcPointProjectionOutsideLine(p, x, y):
 # print(calcPointProjectionOutsideLine(np.array([0,0]),np.array([1,1]),np.array([2,1])))
 # print(calcPointProjectionOutsideLine(np.array([0,0]),np.array([-2,1]),np.array([-1,1])))
 
-def calcPointPointDistance(x, y):
-    xy = y-x
-    d = np.sqrt(xy[0]**2+xy[1]**2)
-    return d
-
 def calcWeight(p, bone):
     outside = calcPointProjectionOutsideLine(p, bone[0:2], bone[2:4])
 
@@ -86,7 +108,7 @@ def calcWeight(p, bone):
     elif outside == -1:
         d = calcPointPointDistance(p, bone[0:2])
     else:
-        d = calcPointLineDistance(p,bone[0:2], bone[2:4])
+        d = calcPointLineMinDistance(p,bone[0:2], bone[2:4])
     weight = np.exp(-0.05*d) # w =e^(-Cd)
 
     return weight
@@ -107,6 +129,55 @@ def calcWeights(bones_default, triangles):
                 weights[point_key] = {'weight': w}
 
     return weights
+
+def findPath(start, bone, triangles):
+    startKey = tuple(start)
+    next = [startKey] # sort by f, lowest index is 0
+    parent = {}
+    g = {startKey: 0} # cost to current
+    f = {startKey: 0+calcPointLineDistance(start,bone[0:2],bone[2:4])} # g + h
+
+    while len(next) != 0:
+        currentKey = next.pop(0)
+        current = np.asarray(currentKey)
+        if calcPointLineDistance(current,bone[0:2],bone[2:4]) < triangulation.MESH_DIST:
+            path = [currentKey]
+            while currentKey in parent:
+                path.append(parent[currentKey])
+                currentKey = parent[currentKey]
+            return np.array(path)
+
+
+        # Get all neighbors
+        match = triangulation.match_point2triangle(current, triangles)
+        neighborKeys = [] # list of point tuples
+        for i in match:
+            triangle = triangles[i]
+            # cv2.polylines(img, [triangle.astype(np.int32)], True, (0,0,255))
+            for point in triangle:
+                if not (point == current).all():
+                    neighborKey = tuple(point)
+                    if neighborKey not in neighborKeys:
+                        neighborKeys.append(neighborKey)
+
+        for neighborKey in neighborKeys:
+            neighbor = np.asarray(neighborKey)
+            g_neighbor = g[currentKey] + calcPointPointDistance(current, neighbor)
+
+            if neighborKey not in g or g_neighbor < g[neighborKey]:
+                parent[neighborKey] = currentKey
+                g[neighborKey] = g_neighbor
+                f[neighborKey] = g_neighbor + calcPointLineDistance(neighbor,bone[0:2],bone[2:4])
+
+                if neighborKey not in next:
+                    # Make sure low f is in the front of the list
+                    index = 0
+                    for i in range(len(next)-1,-1,-1):
+                        if f[neighborKey] > f[next[i]]:
+                            index = i+1
+                            break
+                    next.insert(index, neighborKey)
+    return None
 
 def animate(bones_default, bones_n, triangles, weights):
     # Calculate transformation matrix to next frame for each bone

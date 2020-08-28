@@ -161,13 +161,13 @@ bones_frames = []
 for para in bones_frames_parameters:
     bones_frames.append(bones(para))
 
-for frame in bones_frames:
-    img_tmp = img.copy()
-    for bone in frame:
-        bone = bone.astype(np.int32)
-        cv2.polylines(img_tmp, [bone.reshape((2,2)).astype(np.int32)], True, (255,0,0), 2)
-        cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
-        cv2.circle(img_tmp, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
-    cv2.imshow('Man',img_tmp)
-    cv2.waitKey(0)
-cv2.destroyAllWindows()
+# for frame in bones_frames:
+#     img_tmp = img.copy()
+#     for bone in frame:
+#         bone = bone.astype(np.int32)
+#         cv2.polylines(img_tmp, [bone.reshape((2,2)).astype(np.int32)], True, (255,0,0), 2)
+#         cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
+#         cv2.circle(img_tmp, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
+#     cv2.imshow('Man',img_tmp)
+#     cv2.waitKey(0)
+# cv2.destroyAllWindows()
