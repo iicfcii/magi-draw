@@ -103,11 +103,11 @@ def contour(img_gray):
     ret,img_bin = cv2.threshold(img_gray,127,255,cv2.THRESH_BINARY_INV)
 
     img_morph = cv2.morphologyEx(img_bin, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10)))
-    cv2.imshow('morph',img_morph)
-    cv2.waitKey(0)
+    # cv2.imshow('morph',img_morph)
+    # cv2.waitKey(0)
     img_morph = cv2.dilate(img_bin,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)))
-    cv2.imshow('morph',img_morph)
-    cv2.waitKey(0)
+    # cv2.imshow('morph',img_morph)
+    # cv2.waitKey(0)
 
     contours, hierarchy = cv2.findContours(img_morph,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     if len(contours) != 1:
@@ -183,10 +183,10 @@ def constrain(contour, triangles, edges, img):
     # Find intersecting edges
     edges_intersects = []
     for edge in edges:
-        # # Skip if both end points are not on contour
-        # first_point_is_contour = len((contour == edge[0:2]).all(axis=1).nonzero()[0]) == 1
-        # second_point_is_contour = len((contour == edge[2:4]).all(axis=1).nonzero()[0]) == 1
-        # if not first_point_is_contour and not second_point_is_contour: continue
+        # Skip if both end points are not on contour
+        first_point_is_contour = len((contour == edge[0:2]).all(axis=1).nonzero()[0]) == 1
+        second_point_is_contour = len((contour == edge[2:4]).all(axis=1).nonzero()[0]) == 1
+        if not first_point_is_contour and not second_point_is_contour: continue
 
         match = match_edge2triangle(edge, triangles)
         if len(match) == 0:

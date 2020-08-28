@@ -3,6 +3,7 @@ import cv2
 import triangulation
 import animation
 import man
+import time
 
 # Prepare source image, triangulation, and default bones
 img_src = man.img.copy() # Source image
@@ -23,8 +24,13 @@ for point in keypoints:
 cv2.imshow('Triangulation',img_tmp)
 cv2.waitKey(0)
 
+start_time = time.time()
 triangles = triangulation.constrain(contour, triangles_unconstrained, edges, img_src)
+constrain_time = time.time()
+print(constrain_time - start_time)
 weights = animation.calcWeights(bones_default,triangles)
+weights_time = time.time()
+print(weights_time - constrain_time)
 
 for i in range(len(bones_default)):
     img_tmp = img_src.copy()
