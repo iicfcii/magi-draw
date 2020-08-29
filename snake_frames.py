@@ -34,9 +34,6 @@ for bone in bones_default:
     cv2.polylines(img_tmp, [bone.reshape((2,2))], True, (255,0,0), 2)
     cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
     cv2.circle(img_tmp, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
-for point_key in weights.keys():
-    val = 255*weights[point_key]['weight'][1]
-    cv2.circle(img_tmp, point_key, 2, (0,val,0), thickness=-1)
 cv2.imshow('Constrained Triangulation with Bones',img_tmp)
 cv2.waitKey(0)
 

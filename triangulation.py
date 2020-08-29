@@ -99,17 +99,17 @@ def swap_diagonal(edge, match, triangles):
 
 def contour(img_gray):
     # Offset contour and close holes
-    # TODO: Threshold needs to be automatic
-    ret,img_bin = cv2.threshold(img_gray,127,255,cv2.THRESH_BINARY_INV)
+    # ret,img_bin = cv2.threshold(img_gray,127,255,cv2.THRESH_BINARY_INV)
+    img_bin = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 51, 10)
+    img_close = cv2.morphologyEx(img_bin, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)))
+    img_dialate = cv2.dilate(img_close,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)))
+    cv2.imshow('bin',img_bin)
+    cv2.imshow('close',img_close)
+    cv2.imshow('dialate',img_dialate)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
-    img_morph = cv2.morphologyEx(img_bin, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10)))
-    # cv2.imshow('morph',img_morph)
-    # cv2.waitKey(0)
-    img_morph = cv2.dilate(img_bin,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)))
-    # cv2.imshow('morph',img_morph)
-    # cv2.waitKey(0)
-
-    contours, hierarchy = cv2.findContours(img_morph,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(img_dialate,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     if len(contours) != 1:
         # TODO: merge or dialate
         print('More than one contour')
@@ -163,7 +163,6 @@ def keypoints_uniform(img_gray, contour):
             keypoints.append(kp)
 
     keypoints = np.asarray(keypoints, dtype=np.int32)
-    # TODO: Can filter out outside point to speed up
 
     return keypoints
 

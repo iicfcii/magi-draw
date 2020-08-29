@@ -31,16 +31,20 @@ def calcTransMat(current, next):
     return t_n2c
 
 def calcTransMatBetweenFrame(x_c, x_n):
-    # Length may be useful for scaling
-    # TODO: consider scaling
-    length = np.sqrt((x_c[3]-x_c[1])**2+(x_c[2]-x_c[0])**2)
-    x_world = [0,0,length,0]
+    length_c = np.sqrt((x_c[3]-x_c[1])**2+(x_c[2]-x_c[0])**2)
+    length_n = np.sqrt((x_n[3]-x_n[1])**2+(x_n[2]-x_n[0])**2)
+
+    x_world = [0,0,length_c,0]
 
     t_c2w = calcTransMat(x_world,x_c)
     t_w2c = calcTransMat(x_c,x_world)
     t_n2c = calcTransMat(x_c,x_n)
 
-    return t_c2w @ t_n2c @ t_w2c
+    # Allow scale along bone direction
+    s_c2n = np.identity(3)
+    s_c2n[0,0] = length_n/length_c
+
+    return t_c2w @ t_n2c @ s_c2n @ t_w2c
 
 def calcPointPointDistance(x, y):
     xy = y-x
@@ -114,7 +118,6 @@ def calcWeight(p, bone, triangles):
 
     return weight
 
-# TODO: Points near bone should have weights closer to 1
 def calcWeights(bones_default, triangles):
     weights = {}
     for triangle in triangles:
