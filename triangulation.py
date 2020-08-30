@@ -168,7 +168,10 @@ def keypoints_uniform(img_gray, contour):
 
 def triangulate(contour, keypoints):
     # Form triangles
-    points = np.append(contour,keypoints,axis=0)
+    if len(keypoints) != 0:
+        points = np.concatenate([contour,keypoints],axis=0)
+    else:
+        points = contour
     rect = cv2.boundingRect(points)
     subdiv = cv2.Subdiv2D(rect)
     subdiv.insert(points.tolist())
