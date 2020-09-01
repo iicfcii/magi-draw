@@ -8,15 +8,13 @@ import snake
 import time
 
 # Photo of scene
-img = cv2.imread('img/snake_game_2.jpg')
+img = cv2.imread('img/snake_game_7.jpg')
+cv2.imshow('Source', img)
+cv2.waitKey(0)
 
 # Get drawing
 M = ar.findHomography(img)
-# img_drawing = ar.getDrawing(img, M)
-img_drawing = cv2.imread('img/snake.jpg')
-cv2.imshow('Drawing', img_drawing)
-cv2.waitKey(0)
-
+img_drawing = ar.getDrawing(img, M)
 snake_animator = snake.SnakeAnimator(img_drawing)
 
 
@@ -31,7 +29,7 @@ key = -1
 
 while True:
     time_start = time.time()
-    # M = ar.findHomography(img)
+    M = ar.findHomography(img)
 
     frame_snake = snake_animator.move(key,(ar.MARKER_SIZE,0,ar.BOARD_SIZE,ar.BOARD_SIZE))
     key = -1
@@ -52,6 +50,7 @@ while True:
         x,y,w,h = rect
         img_scene[y:y+h,x:x+w] = img_snake[y-y_snake:y-y_snake+h,x-x_snake:x-x_snake+w]
 
+    # Warp and mask
     img_scene_warpped = cv2.warpPerspective(img_scene, M, (1200,900), flags=cv2.INTER_LINEAR)
     mask_scene_warpped = cv2.warpPerspective(mask_scene, M, (1200,900), flags=cv2.INTER_LINEAR)
     img_render = img.copy()

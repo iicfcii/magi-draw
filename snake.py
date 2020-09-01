@@ -5,7 +5,7 @@ import animation
 
 MAX_SPEED = 15
 SPEED_STEP = 15
-THETA_STEP = 30
+THETA_STEP = 45
 BOUNDARY_OFFSET = 100
 
 # Snake bones
@@ -132,6 +132,15 @@ class SnakeAnimator:
         triangles_unconstrained, edges = triangulation.triangulate(contour, keypoints)
         self.triangles = triangulation.constrain(contour, triangles_unconstrained, edges)
         self.weights = animation.calcWeights(self.bones_default,self.triangles)
+        # img_tmp = drawing.copy()
+        # for triangle in self.triangles:
+        #     cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
+        # for point in contour:
+        #     cv2.circle(img_tmp, tuple(point.astype(np.int32)), 2, (255,0,0), thickness=-1)
+        # for point in keypoints:
+        #     cv2.circle(img_tmp, tuple(point.astype(np.int32)), 2, (0,255,0), thickness=-1)
+        # cv2.imshow('Triangulation',img_tmp)
+        # cv2.waitKey(0)
 
         self.move_frames_ptr = 0
         self.move_frames = {}
@@ -143,6 +152,7 @@ class SnakeAnimator:
         self.v = 0.0
         self.theta = 0
 
+    # Move the snake within a rectangle according to key event
     def move(self, key, rect):
         if key == ord('w'):
             # Speed up
