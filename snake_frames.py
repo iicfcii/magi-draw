@@ -8,7 +8,6 @@ import snake
 img_src = snake.img.copy() # Source image
 img_gray = cv2.cvtColor(img_src, cv2.COLOR_BGR2GRAY)
 
-img_tmp = img_src.copy()
 contour = triangulation.contour(img_gray)
 keypoints = triangulation.keypoints_uniform(img_gray, contour)
 

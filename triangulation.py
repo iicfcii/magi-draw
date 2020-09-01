@@ -181,7 +181,7 @@ def triangulate(contour, keypoints):
 
     return (triangles, edges)
 
-def constrain(contour, triangles, edges, img):
+def constrain(contour, triangles, edges):
     # Find intersecting edges
     edges_intersects = []
     for edge in edges:

@@ -1,5 +1,12 @@
 import numpy as np
 import cv2
+import triangulation
+import animation
+
+MAX_SPEED = 15
+SPEED_STEP = 5
+THETA_STEP = 20
+BOUNDARY_OFFSET = 100
 
 # Snake bones
 # Bones: tail2a, a2b, b2c, c2head
@@ -35,25 +42,20 @@ def t_head2c(theta4,l4):
 def deg2rad(deg):
     return deg/180*np.pi
 
-def bones(bones_parameters):
-    x = bones_parameters[0]
-    y = bones_parameters[1]
-    theta = deg2rad(bones_parameters[2])
-    theta1 = deg2rad(bones_parameters[3])
-    l1 = bones_parameters[4]
-    theta2 = deg2rad(bones_parameters[5])
-    l2 = bones_parameters[6]
-    theta3 = deg2rad(bones_parameters[7])
-    l3 = bones_parameters[8]
-    theta4 = deg2rad(bones_parameters[9])
-    l4 = bones_parameters[10]
-
+def bones(para):
     origin = [[0],[0],[1]] # Origin of each coordinate system
-    p_tail_world = (t_tail2world(x,y,theta) @ origin)[0:2].reshape(2)
-    p_a_world = (t_tail2world(x,y,theta) @ t_a2tail(theta1,l1) @ origin)[0:2].reshape(2)
-    p_b_world = (t_tail2world(x,y,theta) @ t_a2tail(theta1,l1) @ t_b2a(theta2,l2) @ origin)[0:2].reshape(2)
-    p_c_world = (t_tail2world(x,y,theta) @ t_a2tail(theta1,l1) @ t_b2a(theta2,l2) @ t_c2b(theta3,l3) @ origin)[0:2].reshape(2)
-    p_head_world = (t_tail2world(x,y,theta) @ t_a2tail(theta1,l1) @ t_b2a(theta2,l2) @ t_c2b(theta3,l3) @ t_head2c(theta4,l4) @ origin)[0:2].reshape(2)
+
+    T_tail2w = t_tail2world(para['tail']['x'],para['tail']['y'], deg2rad(para['tail']['theta']))
+    T_a2tail = t_a2tail(deg2rad(para['tail_a']['theta']), para['tail_a']['l'])
+    T_b2a = t_a2tail(deg2rad(para['a_b']['theta']), para['a_b']['l'])
+    T_c2b = t_a2tail(deg2rad(para['b_c']['theta']), para['b_c']['l'])
+    T_head2c = t_a2tail(deg2rad(para['c_head']['theta']), para['c_head']['l'])
+
+    p_tail_world = (T_tail2w @ origin)[0:2].reshape(2)
+    p_a_world = (T_tail2w @ T_a2tail @ origin)[0:2].reshape(2)
+    p_b_world = (T_tail2w @ T_a2tail @ T_b2a @ origin)[0:2].reshape(2)
+    p_c_world = (T_tail2w @ T_a2tail @ T_b2a @ T_c2b @ origin)[0:2].reshape(2)
+    p_head_world = (T_tail2w @ T_a2tail @ T_b2a @ T_c2b @ T_head2c @ origin)[0:2].reshape(2)
 
     bone_tail2a = np.array([p_tail_world,p_a_world])
     bone_a2b = np.array([p_a_world,p_b_world])
@@ -63,52 +65,130 @@ def bones(bones_parameters):
 
     return bones
 
-img = cv2.imread('img/snake_test.jpg', 1)
+bones_default_parameters = {
+    'tail': {'x': 70, 'y': 100, 'theta': 0},
+    'tail_a': {'theta': 0, 'l': 80},
+    'a_b': {'theta': 0, 'l': 100},
+    'b_c': {'theta': 0, 'l': 100},
+    'c_head': {'theta': 0, 'l': 80},
+}
 
-# Default bones parameters for each frame
-# x y theta theta1 l1 theta2 l2 theta3 l3 theta3 l3 theta4 l4
-bones_default_parameters = (70,100,0,0,80,0,100,0,100,0,80)
-bones_default = bones(bones_default_parameters)
-
-bones_frames_parameters = [
-    (70,100,0,0,80,0,100,0,100,0,80),
-    (70,100,0,15,80,-30,100,30,100,-30,80),
-    (70,100,0,30,80,-60,100,60,100,-60,80),
-    (70,100,0,15,80,-30,100,30,100,-30,80),
-    (70,100,0,0,80,0,100,0,100,0,80),
-    (70,100,0,-15,80,30,100,-30,100,30,80),
-    (70,100,0,-30,80,60,100,-60,100,60,80),
-    (70,100,0,-15,80,30,100,-30,100,30,80),
-    (70,100,0,0,80,0,100,0,100,0,80),
-    (70,100,0,0,80,0,100,30,100,-30,80),
-    (70,100,0,0,80,0,100,0,100,0,80),
-    (70,100,0,0,80,0,100,-30,100,30,80),
-    (70,100,0,0,80,0,100,0,100,0,80),
-    (70,100,0,0,120,0,150,0,150,0,120),
-    (70,100,0,0,80,0,100,0,100,0,80),
-    (70,100,0,0,60,0,75,0,75,0,60),
-    (70,100,0,0,80,0,100,0,100,0,80),
+move_frames_parameters = [
+    bones_default_parameters,
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': 0},
+        'tail_a': {'theta': 10, 'l': 80},
+        'a_b': {'theta': -30, 'l': 100},
+        'b_c': {'theta': 40, 'l': 100},
+        'c_head': {'theta': -30, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': 0},
+        'tail_a': {'theta': 15, 'l': 80},
+        'a_b': {'theta': -45, 'l': 100},
+        'b_c': {'theta': 60, 'l': 100},
+        'c_head': {'theta': -45, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': 0},
+        'tail_a': {'theta': 10, 'l': 80},
+        'a_b': {'theta': -30, 'l': 100},
+        'b_c': {'theta': 40, 'l': 100},
+        'c_head': {'theta': -30, 'l': 80},
+    },
+    bones_default_parameters,
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': 0},
+        'tail_a': {'theta': -10, 'l': 80},
+        'a_b': {'theta': 30, 'l': 100},
+        'b_c': {'theta': -40, 'l': 100},
+        'c_head': {'theta': 30, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': 0},
+        'tail_a': {'theta': -15, 'l': 80},
+        'a_b': {'theta': 45, 'l': 100},
+        'b_c': {'theta': -60, 'l': 100},
+        'c_head': {'theta': 45, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': 0},
+        'tail_a': {'theta': -10, 'l': 80},
+        'a_b': {'theta': 30, 'l': 100},
+        'b_c': {'theta': -40, 'l': 100},
+        'c_head': {'theta': 30, 'l': 80},
+    },
 ]
-bones_frames = []
-for para in bones_frames_parameters:
-    bones_frames.append(bones(para))
 
-# img_bones = np.zeros(img.shape, np.uint8)
-# img_bones[:,:] = (255,255,255)
-# for bone in bones_default:
-#     bone = bone.astype(np.int32)
-#     cv2.polylines(img_bones, [bone.reshape((2,2)).astype(np.int32)], True, (255,0,0), 2)
-#     cv2.circle(img_bones, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
-#     cv2.circle(img_bones, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
-# cv2.imwrite('img/snake_bones.jpg',img_bones)
+class SnakeAnimator:
+    def __init__(self, drawing):
+        self.drawing = drawing
+        self.bones_default = bones(bones_default_parameters)
 
-# for frame in bones_frames:
-#     img_tmp = img.copy()
-#     for bone in frame:
-#         bone = bone.astype(np.int32)
-#         cv2.polylines(img_tmp, [bone.reshape((2,2)).astype(np.int32)], True, (255,0,0), 2)
-#         cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
-#         cv2.circle(img_tmp, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
-#     cv2.imshow('Snake',img_tmp)
-#     cv2.waitKey(0)
-# cv2.destroyAllWindows()
+        # Skinning(triangulation and weight calculation)
+        img_gray = cv2.cvtColor(self.drawing, cv2.COLOR_BGR2GRAY)
+        contour = triangulation.contour(img_gray)
+        keypoints = triangulation.keypoints_uniform(img_gray, contour)
+        triangles_unconstrained, edges = triangulation.triangulate(contour, keypoints)
+        self.triangles = triangulation.constrain(contour, triangles_unconstrained, edges)
+        self.weights = animation.calcWeights(self.bones_default,self.triangles)
+
+        self.move_frames_ptr = 0
+        self.move_frames = []
+
+        self.generate_move()
+
+        self.p = [0.0, 0.0]
+        self.v = 0.0
+        self.theta = 0
+
+    def move(self, key, rect):
+        assert len(self.move_frames) != 0
+
+        if self.move_frames_ptr == len(self.move_frames)-1:
+            self.move_frames_ptr = 0
+        else:
+            self.move_frames_ptr += 1
+
+        if key == ord('w'):
+            # Speed up
+            self.v += SPEED_STEP
+            if self.v > MAX_SPEED:
+                self.v = MAX_SPEED
+        if key == ord('s'):
+            # Slow down
+            self.v -= SPEED_STEP
+            if self.v < 0:
+                self.v = 0
+        if key == ord('a'):
+            # Turn left
+            self.theta = (self.theta-THETA_STEP)%360
+        if key == ord('d'):
+            # Turn right
+            self.theta = (self.theta+THETA_STEP)%360
+
+        self.p[0] = self.p[0]+self.v*np.cos(deg2rad(self.theta))
+        self.p[1] = self.p[1]+self.v*np.sin(deg2rad(self.theta))
+
+        # Detect boudary
+        x,y,w,h = rect
+
+        w_snake = self.move_frames[self.move_frames_ptr][0].shape[1]
+        h_snake = self.move_frames[self.move_frames_ptr][0].shape[0]
+        anchor = self.move_frames[self.move_frames_ptr][1]
+        x_center = self.p[0]-anchor[0]+w_snake/2
+        y_center = self.p[1]-anchor[1]+h_snake/2
+
+        if x_center < x+BOUNDARY_OFFSET: self.p[0] = x+BOUNDARY_OFFSET+anchor[0]-w_snake/2
+        if x_center > x+w-BOUNDARY_OFFSET: self.p[0] = x+w-BOUNDARY_OFFSET+anchor[0]-w_snake/2
+        if y_center < y+BOUNDARY_OFFSET: self.p[1] = y+BOUNDARY_OFFSET+anchor[1]-h_snake/2
+        if y_center > y+h-BOUNDARY_OFFSET: self.p[1] = y+h-BOUNDARY_OFFSET+anchor[1]-h_snake/2
+
+        return self.move_frames[self.move_frames_ptr]
+
+    def generate_move(self):
+        for para in move_frames_parameters:
+            bones_n = bones(para)
+            triangles_next = animation.animate(self.bones_default,bones_n,self.triangles,self.weights)
+            img_n, anchor = animation.warp(self.drawing, self.triangles, triangles_next, bones_n[0])
+            self.move_frames.append((img_n, anchor))
