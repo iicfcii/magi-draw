@@ -12,13 +12,16 @@ img = cv2.imread('img/snake_game_2.jpg')
 
 # Get drawing
 M = ar.findHomography(img)
-img_drawing = ar.getDrawing(img, M)
-# img_drawing = cv2.imread('img/snake.jpg')
+# img_drawing = ar.getDrawing(img, M)
+img_drawing = cv2.imread('img/snake.jpg')
 cv2.imshow('Drawing', img_drawing)
 cv2.waitKey(0)
 
 snake_animator = snake.SnakeAnimator(img_drawing)
 
+
+x_scene = 0
+y_scene = 0
 w_scene = int(ar.BOARD_SIZE+ar.MARKER_SIZE*2)
 h_scene = int(ar.BOARD_SIZE)
 mask_scene = np.zeros((h_scene, w_scene), np.uint8)
@@ -40,16 +43,14 @@ while True:
 
     img_snake = frame_snake[0]
     anchor_snake = frame_snake[1]
-    x_snake = int(snake_animator.p[0]-anchor_snake[0])
-    y_snake = int(snake_animator.p[1]-anchor_snake[1])
+    x_snake = int(snake_animator.x-anchor_snake[0])
+    y_snake = int(snake_animator.y-anchor_snake[1])
     w_snake = img_snake.shape[1]
     h_snake = img_snake.shape[0]
-    # TODO: make sure render is within scene
-    img_scene[y_snake:y_snake+h_snake,x_snake:x_snake+w_snake] = img_snake
-
-    # cv2.imshow('Scene', img_scene)
-    # cv2.imshow('Scene Mask', mask_scene)
-    # cv2.waitKey(0)
+    rect = animation.union_rects((x_snake,y_snake,w_snake,h_snake), (x_scene,y_scene,w_scene,h_scene))
+    if rect is not None:
+        x,y,w,h = rect
+        img_scene[y:y+h,x:x+w] = img_snake[y-y_snake:y-y_snake+h,x-x_snake:x-x_snake+w]
 
     img_scene_warpped = cv2.warpPerspective(img_scene, M, (1200,900), flags=cv2.INTER_LINEAR)
     mask_scene_warpped = cv2.warpPerspective(mask_scene, M, (1200,900), flags=cv2.INTER_LINEAR)

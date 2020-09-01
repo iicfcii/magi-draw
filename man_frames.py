@@ -23,7 +23,7 @@ for point in keypoints:
 cv2.imshow('Triangulation',img_tmp)
 cv2.waitKey(0)
 
-triangles = triangulation.constrain(contour, triangles_unconstrained, edges, img_src)
+triangles = triangulation.constrain(contour, triangles_unconstrained, edges)
 weights = animation.calcWeights(bones_default,triangles)
 
 for i in range(len(man.bones_frames)):

@@ -4,8 +4,8 @@ import triangulation
 import animation
 
 MAX_SPEED = 15
-SPEED_STEP = 5
-THETA_STEP = 20
+SPEED_STEP = 15
+THETA_STEP = 30
 BOUNDARY_OFFSET = 100
 
 # Snake bones
@@ -134,22 +134,16 @@ class SnakeAnimator:
         self.weights = animation.calcWeights(self.bones_default,self.triangles)
 
         self.move_frames_ptr = 0
-        self.move_frames = []
+        self.move_frames = {}
 
         self.generate_move()
 
-        self.p = [0.0, 0.0]
+        self.x = 0.0
+        self.y = 0.0
         self.v = 0.0
         self.theta = 0
 
     def move(self, key, rect):
-        assert len(self.move_frames) != 0
-
-        if self.move_frames_ptr == len(self.move_frames)-1:
-            self.move_frames_ptr = 0
-        else:
-            self.move_frames_ptr += 1
-
         if key == ord('w'):
             # Speed up
             self.v += SPEED_STEP
@@ -167,28 +161,61 @@ class SnakeAnimator:
             # Turn right
             self.theta = (self.theta+THETA_STEP)%360
 
-        self.p[0] = self.p[0]+self.v*np.cos(deg2rad(self.theta))
-        self.p[1] = self.p[1]+self.v*np.sin(deg2rad(self.theta))
+        self.x = self.x+self.v*np.cos(deg2rad(self.theta))
+        self.y = self.y+self.v*np.sin(deg2rad(self.theta))
 
         # Detect boudary
+        # Figure out the frame to get bounding box
+        assert len(self.move_frames) != 0
+        assert self.theta in self.move_frames
+
+        if self.v != 0:
+            if self.move_frames_ptr == len(self.move_frames[self.theta])-1:
+                self.move_frames_ptr = 0
+            else:
+                self.move_frames_ptr += 1
+        else:
+            self.move_frames_ptr = 0
+        frame = self.move_frames[self.theta][self.move_frames_ptr]
+        img, anchor = frame
+
+        # Two rectangles
         x,y,w,h = rect
+        x_snake = self.x-anchor[0]
+        y_snake = self.y-anchor[1]
+        w_snake = img.shape[1]
+        h_snake = img.shape[0]
 
-        w_snake = self.move_frames[self.move_frames_ptr][0].shape[1]
-        h_snake = self.move_frames[self.move_frames_ptr][0].shape[0]
-        anchor = self.move_frames[self.move_frames_ptr][1]
-        x_center = self.p[0]-anchor[0]+w_snake/2
-        y_center = self.p[1]-anchor[1]+h_snake/2
+        # x direction
+        rect_u = animation.union_rects((x,y,w,h), (x_snake,y_snake,w_snake,h_snake))
+        if rect_u is not None:
+            x_u,y_u,w_u,h_u = rect_u
+            dw = w_snake-w_u
+            dh = h_snake-h_u
+            if dw > 0:
+                if x_u == x:
+                    self.x += dw
+                else:
+                    self.x -= dw
+            if dh > 0:
+                if y_u == y:
+                    self.y += dh
+                else:
+                    self.y -= dh
+        else:
+            self.x = anchor[0] + x
+            self.y = anchor[1] + y
 
-        if x_center < x+BOUNDARY_OFFSET: self.p[0] = x+BOUNDARY_OFFSET+anchor[0]-w_snake/2
-        if x_center > x+w-BOUNDARY_OFFSET: self.p[0] = x+w-BOUNDARY_OFFSET+anchor[0]-w_snake/2
-        if y_center < y+BOUNDARY_OFFSET: self.p[1] = y+BOUNDARY_OFFSET+anchor[1]-h_snake/2
-        if y_center > y+h-BOUNDARY_OFFSET: self.p[1] = y+h-BOUNDARY_OFFSET+anchor[1]-h_snake/2
-
-        return self.move_frames[self.move_frames_ptr]
+        return frame
 
     def generate_move(self):
-        for para in move_frames_parameters:
-            bones_n = bones(para)
-            triangles_next = animation.animate(self.bones_default,bones_n,self.triangles,self.weights)
-            img_n, anchor = animation.warp(self.drawing, self.triangles, triangles_next, bones_n[0])
-            self.move_frames.append((img_n, anchor))
+        for theta in range(0,360,THETA_STEP):
+            # Move frames for every angles
+            frames = []
+            for para in move_frames_parameters:
+                para['tail']['theta'] = theta
+                bones_n = bones(para)
+                triangles_next = animation.animate(self.bones_default,bones_n,self.triangles,self.weights)
+                img_n, anchor = animation.warp(self.drawing, self.triangles, triangles_next, bones_n[0])
+                frames.append((img_n, anchor))
+            self.move_frames[theta] = frames

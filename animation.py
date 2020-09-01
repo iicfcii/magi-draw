@@ -183,6 +183,19 @@ def findPath(start, bone, triangles):
                     next.insert(index, neighbor_key)
     return None
 
+# rect: (x,y,w,h)
+def union_rects(rect1, rect2):
+    x = np.maximum(rect1[0],rect2[0])
+    y = np.maximum(rect1[1],rect2[1])
+    w = np.minimum(rect1[0]+rect1[2],rect2[0]+rect2[2])-x
+    h = np.minimum(rect1[1]+rect1[3],rect2[1]+rect2[3])-y
+
+    if w > 0 and h > 0:
+        return (x,y,w,h)
+    else:
+        # No union
+        return None
+
 def animate(bones_default, bones_n, triangles, weights):
     # Calculate transformation matrix to next frame for each bone
     transformations = []
@@ -241,10 +254,7 @@ def warp(img, triangles, triangles_next, bone):
         y -= rect_offset
         w += rect_offset*2
         h += rect_offset*2
-        x_valid = np.maximum(x,0)
-        y_valid = np.maximum(y,0)
-        w_valid = np.minimum(w,img.shape[1]-x)
-        h_valid = np.minimum(h,img.shape[0]-y)
+        rect_valid= union_rects((x,y,w,h), (0,0,img.shape[1],img.shape[0]))
 
         # Warp from current to next
         # Calculate coordinate wrt to bounding rectangle
@@ -252,9 +262,9 @@ def warp(img, triangles, triangles_next, bone):
         triangle_n_offset = triangle_n-np.tile(np.array([x,y]),(3,1)).astype(np.float32)
 
         img_triangle_c = np.zeros((h,w,3), np.uint8)
-        # print(img_triangle_c[y_valid-y:y_valid-y+h_valid-(y_valid-y), x_valid-x:x_valid-x+w_valid-(x_valid-x)].shape)
-        # print(img[y_valid-y+y:y_valid+h_valid-(y_valid-y), x_valid-x+x:x_valid+w_valid-(x_valid-x)].shape)
-        img_triangle_c[y_valid-y:h_valid, x_valid-x:w_valid] = img[y_valid:h_valid+y, x_valid:w_valid+x]
+        if rect_valid is not None:
+            x_valid, y_valid, w_valid, h_valid = rect_valid
+            img_triangle_c[y_valid-y:y_valid-y+h_valid, x_valid-x:x_valid-x+w_valid] = img[y_valid:y_valid+h_valid, x_valid:x_valid+w_valid]
 
         warp_mat  = cv2.getAffineTransform(triangle_c_offset, triangle_n_offset)
         img_triangle_n = cv2.warpAffine(img_triangle_c, warp_mat, (w, h))
