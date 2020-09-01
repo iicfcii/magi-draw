@@ -74,16 +74,5 @@ def getDrawing(img, M):
     w = int(DRAW_WIDTH)
     h = int(DRAW_HEIGHT)
     img_drawing = img_drawing[y:y+h,x:x+w]
-    # img_drawing = cv2.resize(img_drawing, None, fx=2, fy=2)
 
     return img_drawing
-
-# # Draw board
-# points_ref = BOARD_REF.reshape(-1,1,2)
-# points_board = cv2.perspectiveTransform(points_ref,M)
-#
-# img_board = cv2.polylines(img.copy(), [points_board.astype(np.int32)], True, (0,0,255),5)
-# cv2.imshow('Homography', img_board)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-#

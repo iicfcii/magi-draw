@@ -132,20 +132,11 @@ class SnakeAnimator:
         triangles_unconstrained, edges = triangulation.triangulate(contour, keypoints)
         self.triangles = triangulation.constrain(contour, triangles_unconstrained, edges)
         self.weights = animation.calcWeights(self.bones_default,self.triangles)
-        # img_tmp = drawing.copy()
-        # for triangle in self.triangles:
-        #     cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
-        # for point in contour:
-        #     cv2.circle(img_tmp, tuple(point.astype(np.int32)), 2, (255,0,0), thickness=-1)
-        # for point in keypoints:
-        #     cv2.circle(img_tmp, tuple(point.astype(np.int32)), 2, (0,255,0), thickness=-1)
-        # cv2.imshow('Triangulation',img_tmp)
-        # cv2.waitKey(0)
 
         self.move_frames_ptr = 0
         self.move_frames = {}
 
-        self.generate_move()
+        self.generate_move(0.5)
 
         self.x = 0.0
         self.y = 0.0
@@ -218,7 +209,7 @@ class SnakeAnimator:
 
         return frame
 
-    def generate_move(self):
+    def generate_move(self, ratio):
         for theta in range(0,360,THETA_STEP):
             # Move frames for every angles
             frames = []
@@ -227,5 +218,9 @@ class SnakeAnimator:
                 bones_n = bones(para)
                 triangles_next = animation.animate(self.bones_default,bones_n,self.triangles,self.weights)
                 img_n, anchor = animation.warp(self.drawing, self.triangles, triangles_next, bones_n[0])
+
+                img_n = cv2.resize(img_n, None, fx=ratio, fy=ratio)
+                anchor = anchor*ratio
+
                 frames.append((img_n, anchor))
             self.move_frames[theta] = frames
