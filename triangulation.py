@@ -195,10 +195,8 @@ def constrain(contour, triangles, edges):
     # Find intersecting edges
     edges_intersects = []
     for edge in edges:
-        # Skip if both end points are not on contour
-        first_point_is_contour = len((contour == edge[0:2]).all(axis=1).nonzero()[0]) == 1
-        second_point_is_contour = len((contour == edge[2:4]).all(axis=1).nonzero()[0]) == 1
-        if not first_point_is_contour and not second_point_is_contour: continue
+        # NOTE: Cant skip if both end points are not on contour
+        # Extreme convexity is the exception
 
         match = match_edge2triangle(edge, triangles)
         if len(match) == 0:
@@ -216,7 +214,7 @@ def constrain(contour, triangles, edges):
     # Swap intersecting edges
     edges_new = []
     while len(edges_intersects) != 0:
-        # # Check edges process
+        # Check edges process
         # img_tmp = img.copy()
         # for triangle in triangles:
         #     cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))

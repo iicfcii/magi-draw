@@ -1,31 +1,25 @@
 import cv2
+import numpy as np
+import ar
+import triangulation
+import animation
+import snake
+
+import time
 
 cam = cv2.VideoCapture(0)
-print("Setting frame width to 1280", cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280))
-print("Setting frame height to 720", cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720))
 
-cv2.namedWindow("test")
-
-img_counter = 0
 
 while True:
-    ret, frame = cam.read()
-    if not ret:
-        print("failed to grab frame")
-        break
-    cv2.imshow("test", frame)
+    ret, img = cam.read()
 
-    k = cv2.waitKey(1)
-    if k%256 == 27:
-        # ESC pressed
-        print("Escape hit, closing...")
-        break
-    elif k%256 == 32:
-        # SPACE pressed
-        img_name = "opencv_frame_{}.jpg".format(img_counter)
-        cv2.imwrite(img_name, frame)
-        print("{} written!".format(img_name))
-        img_counter += 1
+    if not ret: continue
+
+    M = ar.findHomography(img)
+    print(M)
+    cv2.imshow("Snake Game", img)
+    cv2.waitKey(10)
+
 
 cam.release()
 

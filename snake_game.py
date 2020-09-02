@@ -8,7 +8,7 @@ import snake
 import time
 
 # Photo of scene
-img = cv2.imread('img/snake_game_7.jpg')
+img = cv2.imread('img/snake_game_9.jpg')
 cv2.imshow('Source', img)
 cv2.waitKey(0)
 
