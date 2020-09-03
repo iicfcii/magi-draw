@@ -10,53 +10,56 @@ BOARD_SIZE = 500*RATIO
 DRAW_WIDTH = 250*RATIO
 DRAW_HEIGHT = 100*RATIO
 CORNERS_REF = {
-    283: np.array([[0,0],
-                   [MARKER_SIZE,0],
-                   [MARKER_SIZE,MARKER_SIZE],
-                   [0,MARKER_SIZE]]),
-    430: np.array([[MARKER_SIZE+BOARD_SIZE,0],
-                   [2*MARKER_SIZE+BOARD_SIZE,0],
-                   [2*MARKER_SIZE+BOARD_SIZE,MARKER_SIZE],
-                   [MARKER_SIZE+BOARD_SIZE,MARKER_SIZE]]),
-    866: np.array([[0,BOARD_SIZE-MARKER_SIZE],
-                   [MARKER_SIZE,BOARD_SIZE-MARKER_SIZE],
-                   [MARKER_SIZE,BOARD_SIZE],
-                   [0,BOARD_SIZE]]),
-    935: np.array([[MARKER_SIZE+BOARD_SIZE,BOARD_SIZE-MARKER_SIZE],
-                   [2*MARKER_SIZE+BOARD_SIZE,BOARD_SIZE-MARKER_SIZE],
-                   [2*MARKER_SIZE+BOARD_SIZE,BOARD_SIZE],
-                   [MARKER_SIZE+BOARD_SIZE,BOARD_SIZE]])
+    7: np.array([[0,0],
+                 [MARKER_SIZE,0],
+                 [MARKER_SIZE,MARKER_SIZE],
+                 [0,MARKER_SIZE]]),
+    23: np.array([[MARKER_SIZE+BOARD_SIZE,0],
+                  [2*MARKER_SIZE+BOARD_SIZE,0],
+                  [2*MARKER_SIZE+BOARD_SIZE,MARKER_SIZE],
+                  [MARKER_SIZE+BOARD_SIZE,MARKER_SIZE]]),
+    42: np.array([[0,BOARD_SIZE-MARKER_SIZE],
+                  [MARKER_SIZE,BOARD_SIZE-MARKER_SIZE],
+                  [MARKER_SIZE,BOARD_SIZE],
+                  [0,BOARD_SIZE]]),
+    27: np.array([[MARKER_SIZE+BOARD_SIZE,BOARD_SIZE-MARKER_SIZE],
+                  [2*MARKER_SIZE+BOARD_SIZE,BOARD_SIZE-MARKER_SIZE],
+                  [2*MARKER_SIZE+BOARD_SIZE,BOARD_SIZE],
+                  [MARKER_SIZE+BOARD_SIZE,BOARD_SIZE]])
 }
 BOARD_REF = np.array([[MARKER_SIZE,0],
                       [MARKER_SIZE+BOARD_SIZE,0],
                       [MARKER_SIZE+BOARD_SIZE,BOARD_SIZE],
                       [MARKER_SIZE,BOARD_SIZE]])
 DRAW_REF = np.array([[(BOARD_SIZE-DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE-DRAW_HEIGHT)/2],
-                      [(BOARD_SIZE+DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE-DRAW_HEIGHT)/2],
-                      [(BOARD_SIZE+DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE+DRAW_HEIGHT)/2],
-                      [(BOARD_SIZE-DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE+DRAW_HEIGHT)/2]])
+                     [(BOARD_SIZE+DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE-DRAW_HEIGHT)/2],
+                     [(BOARD_SIZE+DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE+DRAW_HEIGHT)/2],
+                     [(BOARD_SIZE-DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE+DRAW_HEIGHT)/2]])
+
+DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+PARA = cv2.aruco.DetectorParameters_create()
 
 def findHomography(img):
     # Detect markers
-    dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
-    corners, ids, rejects = cv2.aruco.detectMarkers(img, dictionary) # Default parameters
-
+    corners, ids, rejects = cv2.aruco.detectMarkers(img, DICT, parameters=PARA) # Default parameters
     if ids is None: return None
-
-    # img_markers = cv2.aruco.drawDetectedMarkers(img.copy(), corners, ids)
-    # cv2.imshow('Detection', img_markers)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    # img_tmp = img.copy()
+    # img_tmp = cv2.aruco.drawDetectedMarkers(img_tmp, corners, ids)
 
     # Find Homography
-    corners = np.concatenate(corners).reshape(-1,2)
+    corners_dst = []
     corners_ref = []
-    for id in ids:
-        corners_ref.append(CORNERS_REF[id[0]])
+    for i, id in enumerate(ids):
+        if id[0] in CORNERS_REF:
+            corners_ref.append(CORNERS_REF[id[0]])
+            corners_dst.append(corners[i])
+
+    if len(corners_ref) < 2: return None # Detected wrong markers
+
+    corners_dst = np.concatenate(corners_dst).reshape(-1,2)
     corners_ref = np.concatenate(corners_ref).reshape(-1,2)
 
-    M, mask = cv2.findHomography(corners_ref,corners)
-
+    M, mask = cv2.findHomography(corners_ref,corners_dst)
     return M
 
 def getDrawing(img, M):
