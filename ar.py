@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import animation
 
  # Ratio between design pixel size and desired size
  # Camera needs to be high res otherwise image is scaled during warpPerspective
@@ -86,3 +87,74 @@ def getDrawing(img, M):
     img_drawing = img_drawing[y:y+h,x:x+w]
 
     return img_drawing
+
+def render(render, img, position, M):
+    # Construct scene and mask
+    x_scene = 0
+    y_scene = 0
+    w_scene = int(BOARD_SIZE)
+    h_scene = int(BOARD_SIZE)
+    mask_scene = np.zeros((h_scene, w_scene), np.uint8)
+    mask_scene[:,:] = 255
+    img_scene = np.zeros((h_scene,w_scene,3),np.uint8)
+    img_scene[:,:] = (255,255,255)
+
+    # Render scene before warp
+    x_snake = position[0]
+    y_snake = position[1]
+    w_snake = img.shape[1]
+    h_snake = img.shape[0]
+    rect = animation.union_rects((x_snake,y_snake,w_snake,h_snake), (x_scene,y_scene,w_scene,h_scene))
+    if rect is not None:
+        x,y,w,h = rect
+        img_scene[y:y+h,x:x+w] = img[y-y_snake:y-y_snake+h,x-x_snake:x-x_snake+w]
+
+    # Warp and mask
+    w_render = render.shape[1]
+    h_render = render.shape[0]
+    img_scene_warpped = cv2.warpPerspective(img_scene, M, (w_render,h_render), flags=cv2.INTER_LINEAR)
+    mask_scene_warpped = cv2.warpPerspective(mask_scene, M, (w_render,h_render), flags=cv2.INTER_LINEAR)
+    img_render = render.copy()
+    img_render[mask_scene_warpped>0] = img_scene_warpped[mask_scene_warpped>0]
+
+    return img_render
+
+
+class HomographyInterpolater:
+    def __init__(self):
+        self.MAT_PREV_COUNT = 2
+        self.mat_prev_ptr = 0
+        self.mats_prev = [(None, False)] * self.MAT_PREV_COUNT # (mat, interpolated)
+        self.interpolation_count = 0
+
+    def increment_ptr(self, ptr):
+        ptr += 1
+        if ptr >= self.MAT_PREV_COUNT:
+            ptr = 0
+        return ptr
+
+    def decrement_ptr(self, ptr):
+        ptr -= 1
+        if ptr <  0:
+            ptr = self.MAT_PREV_COUNT-1
+        return ptr
+
+    def estimate(self, mat):
+        interpolated = False
+
+        if mat is not None:
+            self.interpolation_count = 0
+        else:
+            if self.interpolation_count < 1:
+                mat_1 = self.mats_prev[self.mat_prev_ptr][0]
+                mat_2 = self.mats_prev[self.decrement_ptr(self.mat_prev_ptr)][0]
+
+                if mat_1 is not None and mat_2 is not None:
+                    mat = (mat_1+mat_1-mat_2)*0.5+mat_1*0.5
+                    interpolated = True
+                    if self.mats_prev[self.mat_prev_ptr][1]: self.interpolation_count += 1
+
+        self.mat_prev_ptr = self.increment_ptr(self.mat_prev_ptr)
+        self.mats_prev[self.mat_prev_ptr] = (mat, interpolated)
+
+        return (mat, interpolated)

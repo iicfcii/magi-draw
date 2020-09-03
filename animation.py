@@ -106,7 +106,10 @@ def calcPointProjectionOutsideLine(p, x, y):
 
 def calcWeight(p, bone, triangles):
     d = calcPointLineDistance(p, bone[0:2], bone[2:4])
-    if d > 100: return 0 # Too far away, nearly zero
+
+    # NOTE: 150 may be too big if image too small and vice versa
+    # However, this can speed up the calculation
+    if d > 150: return 0 # Too far away, nearly zero
 
     path = findPath(p, bone, triangles)
     if len(path) == 0: print('No path found!')

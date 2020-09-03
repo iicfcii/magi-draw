@@ -98,16 +98,17 @@ def swap_diagonal(edge, match, triangles):
     return edge_new
 
 def contour(img_gray):
-    # Offset contour and close holes
-    # ret,img_bin = cv2.threshold(img_gray,127,255,cv2.THRESH_BINARY_INV)
+    # Threshold
     img_bin = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 51, 10)
+    # Offset contour and close holes
     img_close = cv2.morphologyEx(img_bin, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)))
     img_dialate = cv2.dilate(img_close,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)))
-    cv2.imshow('bin',img_bin)
-    cv2.imshow('close',img_close)
-    cv2.imshow('dialate',img_dialate)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+
+    # cv2.imshow('bin',img_bin)
+    # cv2.imshow('close',img_close)
+    # cv2.imshow('dialate',img_dialate)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     contours, hierarchy = cv2.findContours(img_dialate,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     if len(contours) != 1:
