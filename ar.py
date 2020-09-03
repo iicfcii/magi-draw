@@ -5,7 +5,7 @@ import numpy as np
  # Camera needs to be high res otherwise image is scaled during warpPerspective
  # Adjust ratio to get desired drawing size for animation
 RATIO = 2.0
-MARKER_SIZE = 72*RATIO
+MARKER_SIZE = 144*RATIO
 BOARD_SIZE = 500*RATIO
 DRAW_WIDTH = 250*RATIO
 DRAW_HEIGHT = 100*RATIO
@@ -14,35 +14,40 @@ CORNERS_REF = {
                  [MARKER_SIZE,0],
                  [MARKER_SIZE,MARKER_SIZE],
                  [0,MARKER_SIZE]]),
-    23: np.array([[MARKER_SIZE+BOARD_SIZE,0],
-                  [2*MARKER_SIZE+BOARD_SIZE,0],
-                  [2*MARKER_SIZE+BOARD_SIZE,MARKER_SIZE],
-                  [MARKER_SIZE+BOARD_SIZE,MARKER_SIZE]]),
+    23: np.array([[BOARD_SIZE-MARKER_SIZE,0],
+                  [BOARD_SIZE,0],
+                  [BOARD_SIZE,MARKER_SIZE],
+                  [BOARD_SIZE-MARKER_SIZE,MARKER_SIZE]]),
+    27: np.array([[BOARD_SIZE-MARKER_SIZE,BOARD_SIZE-MARKER_SIZE],
+                  [BOARD_SIZE,BOARD_SIZE-MARKER_SIZE],
+                  [BOARD_SIZE,BOARD_SIZE],
+                  [BOARD_SIZE-MARKER_SIZE,BOARD_SIZE]]),
     42: np.array([[0,BOARD_SIZE-MARKER_SIZE],
                   [MARKER_SIZE,BOARD_SIZE-MARKER_SIZE],
                   [MARKER_SIZE,BOARD_SIZE],
                   [0,BOARD_SIZE]]),
-    27: np.array([[MARKER_SIZE+BOARD_SIZE,BOARD_SIZE-MARKER_SIZE],
-                  [2*MARKER_SIZE+BOARD_SIZE,BOARD_SIZE-MARKER_SIZE],
-                  [2*MARKER_SIZE+BOARD_SIZE,BOARD_SIZE],
-                  [MARKER_SIZE+BOARD_SIZE,BOARD_SIZE]])
 }
-BOARD_REF = np.array([[MARKER_SIZE,0],
-                      [MARKER_SIZE+BOARD_SIZE,0],
-                      [MARKER_SIZE+BOARD_SIZE,BOARD_SIZE],
-                      [MARKER_SIZE,BOARD_SIZE]])
-DRAW_REF = np.array([[(BOARD_SIZE-DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE-DRAW_HEIGHT)/2],
-                     [(BOARD_SIZE+DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE-DRAW_HEIGHT)/2],
-                     [(BOARD_SIZE+DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE+DRAW_HEIGHT)/2],
-                     [(BOARD_SIZE-DRAW_WIDTH)/2+MARKER_SIZE,(BOARD_SIZE+DRAW_HEIGHT)/2]])
+BOARD_REF = np.array([[0,0],
+                      [BOARD_SIZE,0],
+                      [BOARD_SIZE,BOARD_SIZE],
+                      [0,BOARD_SIZE]])
+DRAW_REF = np.array([[(BOARD_SIZE-DRAW_WIDTH)/2,(BOARD_SIZE-DRAW_HEIGHT)/2],
+                     [(BOARD_SIZE+DRAW_WIDTH)/2,(BOARD_SIZE-DRAW_HEIGHT)/2],
+                     [(BOARD_SIZE+DRAW_WIDTH)/2,(BOARD_SIZE+DRAW_HEIGHT)/2],
+                     [(BOARD_SIZE-DRAW_WIDTH)/2,(BOARD_SIZE+DRAW_HEIGHT)/2]])
 
 DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 PARA = cv2.aruco.DetectorParameters_create()
+PARA.adaptiveThreshWinSizeMin = 3
+PARA.adaptiveThreshWinSizeMax = 53
+PARA.adaptiveThreshWinSizeStep = 10
 
 def findHomography(img):
     # Detect markers
     corners, ids, rejects = cv2.aruco.detectMarkers(img, DICT, parameters=PARA) # Default parameters
-    if ids is None: return None
+    if ids is None:
+        # print('No ids')
+        return None
     # img_tmp = img.copy()
     # img_tmp = cv2.aruco.drawDetectedMarkers(img_tmp, corners, ids)
 
@@ -54,7 +59,9 @@ def findHomography(img):
             corners_ref.append(CORNERS_REF[id[0]])
             corners_dst.append(corners[i])
 
-    if len(corners_ref) < 2: return None # Detected wrong markers
+    if len(corners_ref) == 0:
+        # print('No correct ids')
+        return None # Detected wrong markers
 
     corners_dst = np.concatenate(corners_dst).reshape(-1,2)
     corners_ref = np.concatenate(corners_ref).reshape(-1,2)
