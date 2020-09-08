@@ -2,48 +2,13 @@ import cv2
 import numpy as np
 import animation
 
- # Ratio between design pixel size and desired size
- # Camera needs to be high res otherwise image is scaled during warpPerspective
- # Adjust ratio to get desired drawing size for animation
-RATIO = 2.0
-MARKER_SIZE = 144*RATIO
-BOARD_SIZE = 500*RATIO
-DRAW_WIDTH = 250*RATIO
-DRAW_HEIGHT = 100*RATIO
-CORNERS_REF = {
-    7: np.array([[0,0],
-                 [MARKER_SIZE,0],
-                 [MARKER_SIZE,MARKER_SIZE],
-                 [0,MARKER_SIZE]]),
-    23: np.array([[BOARD_SIZE-MARKER_SIZE,0],
-                  [BOARD_SIZE,0],
-                  [BOARD_SIZE,MARKER_SIZE],
-                  [BOARD_SIZE-MARKER_SIZE,MARKER_SIZE]]),
-    27: np.array([[BOARD_SIZE-MARKER_SIZE,BOARD_SIZE-MARKER_SIZE],
-                  [BOARD_SIZE,BOARD_SIZE-MARKER_SIZE],
-                  [BOARD_SIZE,BOARD_SIZE],
-                  [BOARD_SIZE-MARKER_SIZE,BOARD_SIZE]]),
-    42: np.array([[0,BOARD_SIZE-MARKER_SIZE],
-                  [MARKER_SIZE,BOARD_SIZE-MARKER_SIZE],
-                  [MARKER_SIZE,BOARD_SIZE],
-                  [0,BOARD_SIZE]]),
-}
-BOARD_REF = np.array([[0,0],
-                      [BOARD_SIZE,0],
-                      [BOARD_SIZE,BOARD_SIZE],
-                      [0,BOARD_SIZE]])
-DRAW_REF = np.array([[(BOARD_SIZE-DRAW_WIDTH)/2,(BOARD_SIZE-DRAW_HEIGHT)/2],
-                     [(BOARD_SIZE+DRAW_WIDTH)/2,(BOARD_SIZE-DRAW_HEIGHT)/2],
-                     [(BOARD_SIZE+DRAW_WIDTH)/2,(BOARD_SIZE+DRAW_HEIGHT)/2],
-                     [(BOARD_SIZE-DRAW_WIDTH)/2,(BOARD_SIZE+DRAW_HEIGHT)/2]])
-
 DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 PARA = cv2.aruco.DetectorParameters_create()
 PARA.adaptiveThreshWinSizeMin = 3
 PARA.adaptiveThreshWinSizeMax = 53
 PARA.adaptiveThreshWinSizeStep = 10
 
-def findHomography(img):
+def findHomography(img, corners_ref):
     # Detect markers
     corners, ids, rejects = cv2.aruco.detectMarkers(img, DICT, parameters=PARA) # Default parameters
     if ids is None:
@@ -54,25 +19,25 @@ def findHomography(img):
 
     # Find Homography
     corners_dst = []
-    corners_ref = []
+    corners_src = []
     for i, id in enumerate(ids):
-        if id[0] in CORNERS_REF:
-            corners_ref.append(CORNERS_REF[id[0]])
+        if id[0] in corners_ref:
+            corners_src.append(corners_ref[id[0]])
             corners_dst.append(corners[i])
 
-    if len(corners_ref) == 0:
+    if len(corners_src) == 0:
         # print('No correct ids')
         return None # Detected wrong markers
 
     corners_dst = np.concatenate(corners_dst).reshape(-1,2)
-    corners_ref = np.concatenate(corners_ref).reshape(-1,2)
+    corners_src = np.concatenate(corners_src).reshape(-1,2)
 
-    M, mask = cv2.findHomography(corners_ref,corners_dst)
+    M, mask = cv2.findHomography(corners_src,corners_dst)
     return M
 
-def getDrawing(img, M):
+def getDrawing(img, M, draw_ref):
     # Warp drawing
-    size = (int(2*MARKER_SIZE+BOARD_SIZE),int(BOARD_SIZE))
+    size = (int(draw_ref[2,0]),int(draw_ref[2,1]))
     img_drawing = cv2.warpPerspective(img, M, size, flags=cv2.WARP_INVERSE_MAP+cv2.INTER_LINEAR)
 
     # cv2.imshow('Drawing', img_drawing)
@@ -80,20 +45,20 @@ def getDrawing(img, M):
     # cv2.destroyAllWindows()
 
     # Crop drawing
-    x = int(DRAW_REF[0,0])
-    y = int(DRAW_REF[0,1])
-    w = int(DRAW_WIDTH)
-    h = int(DRAW_HEIGHT)
+    x = int(draw_ref[0,0])
+    y = int(draw_ref[0,1])
+    w = int(draw_ref[2,0]-draw_ref[0,0])
+    h = int(draw_ref[2,1]-draw_ref[0,1])
     img_drawing = img_drawing[y:y+h,x:x+w]
 
     return img_drawing
 
-def render(render, img, position, M):
+def render(render, img, position, M, size):
     # Construct scene and mask
     x_scene = 0
     y_scene = 0
-    w_scene = int(BOARD_SIZE)
-    h_scene = int(BOARD_SIZE)
+    w_scene = int(size[0])
+    h_scene = int(size[1])
     mask_scene = np.zeros((h_scene, w_scene), np.uint8)
     mask_scene[:,:] = 255
     img_scene = np.zeros((h_scene,w_scene,3),np.uint8)
@@ -118,43 +83,3 @@ def render(render, img, position, M):
     img_render[mask_scene_warpped>0] = img_scene_warpped[mask_scene_warpped>0]
 
     return img_render
-
-
-class HomographyInterpolater:
-    def __init__(self):
-        self.MAT_PREV_COUNT = 2
-        self.mat_prev_ptr = 0
-        self.mats_prev = [(None, False)] * self.MAT_PREV_COUNT # (mat, interpolated)
-        self.interpolation_count = 0
-
-    def increment_ptr(self, ptr):
-        ptr += 1
-        if ptr >= self.MAT_PREV_COUNT:
-            ptr = 0
-        return ptr
-
-    def decrement_ptr(self, ptr):
-        ptr -= 1
-        if ptr <  0:
-            ptr = self.MAT_PREV_COUNT-1
-        return ptr
-
-    def estimate(self, mat):
-        interpolated = False
-
-        if mat is not None:
-            self.interpolation_count = 0
-        else:
-            if self.interpolation_count < 1:
-                mat_1 = self.mats_prev[self.mat_prev_ptr][0]
-                mat_2 = self.mats_prev[self.decrement_ptr(self.mat_prev_ptr)][0]
-
-                if mat_1 is not None and mat_2 is not None:
-                    mat = (mat_1+mat_1-mat_2)*0.5+mat_1*0.5
-                    interpolated = True
-                    if self.mats_prev[self.mat_prev_ptr][1]: self.interpolation_count += 1
-
-        self.mat_prev_ptr = self.increment_ptr(self.mat_prev_ptr)
-        self.mats_prev[self.mat_prev_ptr] = (mat, interpolated)
-
-        return (mat, interpolated)

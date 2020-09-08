@@ -11,8 +11,8 @@ cv2.imshow('Source', img)
 cv2.waitKey(0)
 
 # Get drawing
-M = ar.findHomography(img)
-img_drawing = ar.getDrawing(img, M)
+M = ar.findHomography(img, snake.CORNERS_REF)
+img_drawing = ar.getDrawing(img, M, snake.DRAW_REF)
 snake_animator = snake.SnakeAnimator(img_drawing, snake.SnakeModel())
 
 img_tmp = snake_animator.drawing.copy()
@@ -34,6 +34,12 @@ for i in range(len(snake_animator.bones_default)):
         val = 255*snake_animator.weights[point_key]['weight'][i]
         cv2.circle(img_tmp, point_key, 2, (0,val,0), thickness=-1)
     cv2.imshow('Weights' + str(i),img_tmp)
-
 cv2.waitKey(0)
+
+for i, frame in enumerate(snake_animator.move_frames[0]):
+    img, anchor = frame
+    img_tmp = img.copy()
+    cv2.imshow('Frame' + str(i),img_tmp)
+cv2.waitKey(0)
+
 cv2.destroyAllWindows()

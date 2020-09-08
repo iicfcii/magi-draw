@@ -9,6 +9,42 @@ MAX_SPEED = 15
 SPEED_STEP = 15
 THETA_STEP = 90
 
+# Ratio between design pixel size and desired size
+# Camera needs to be high res otherwise image is scaled during warpPerspective
+# Adjust ratio to get desired drawing size for animation
+RATIO = 2.0
+MARKER_SIZE = 144*RATIO
+BOARD_SIZE = 500*RATIO
+DRAW_WIDTH = 250*RATIO
+DRAW_HEIGHT = 100*RATIO
+CORNERS_REF = {
+    7: np.array([[0,0],
+                 [MARKER_SIZE,0],
+                 [MARKER_SIZE,MARKER_SIZE],
+                 [0,MARKER_SIZE]]),
+    23: np.array([[BOARD_SIZE-MARKER_SIZE,0],
+                  [BOARD_SIZE,0],
+                  [BOARD_SIZE,MARKER_SIZE],
+                  [BOARD_SIZE-MARKER_SIZE,MARKER_SIZE]]),
+    27: np.array([[BOARD_SIZE-MARKER_SIZE,BOARD_SIZE-MARKER_SIZE],
+                  [BOARD_SIZE,BOARD_SIZE-MARKER_SIZE],
+                  [BOARD_SIZE,BOARD_SIZE],
+                  [BOARD_SIZE-MARKER_SIZE,BOARD_SIZE]]),
+    42: np.array([[0,BOARD_SIZE-MARKER_SIZE],
+                  [MARKER_SIZE,BOARD_SIZE-MARKER_SIZE],
+                  [MARKER_SIZE,BOARD_SIZE],
+                  [0,BOARD_SIZE]]),
+}
+BOARD_REF = np.array([[0,0],
+                      [BOARD_SIZE,0],
+                      [BOARD_SIZE,BOARD_SIZE],
+                      [0,BOARD_SIZE]])
+DRAW_REF = np.array([[(BOARD_SIZE-DRAW_WIDTH)/2,(BOARD_SIZE-DRAW_HEIGHT)/2],
+                     [(BOARD_SIZE+DRAW_WIDTH)/2,(BOARD_SIZE-DRAW_HEIGHT)/2],
+                     [(BOARD_SIZE+DRAW_WIDTH)/2,(BOARD_SIZE+DRAW_HEIGHT)/2],
+                     [(BOARD_SIZE-DRAW_WIDTH)/2,(BOARD_SIZE+DRAW_HEIGHT)/2]])
+
+
 # Snake bones
 # Bones: tail2a, a2b, b2c, c2head
 # Length: l1 l2 l3 l4
@@ -172,6 +208,7 @@ class SnakeAnimator:
         self.current_frame = self.move_frames[self.model.theta][self.move_frames_ptr]
 
     def generate_move(self, ratio):
+        # TODO: Avoid generating same frame
         for theta in range(0,360,THETA_STEP):
             # Move frames for every angles
             frames = []
@@ -194,7 +231,7 @@ class SnakeModel:
         self.y = 0.0
         self.v = 0.0
         self.theta = 0
-        self.rect = (0,0,ar.BOARD_SIZE,ar.BOARD_SIZE) # Bounding box
+        self.rect = (0,0,BOARD_SIZE,BOARD_SIZE) # Bounding box
 
     def move(self, key):
         if key == 87: # w
@@ -255,33 +292,33 @@ class SnakeGame:
 
         if img is None: return False
 
-        mat = ar.findHomography(img)
+        mat = ar.findHomography(img, CORNERS_REF)
         if mat is None: return False
-        img_drawing = ar.getDrawing(img, mat)
+        img_drawing = ar.getDrawing(img, mat, DRAW_REF)
         self.animator = SnakeAnimator(img_drawing, self.model)
         return True
 
     def render_drawing(self, img):
         if img is None: return None
 
-        mat = ar.findHomography(img)
+        mat = ar.findHomography(img, CORNERS_REF)
         img_tmp = img.copy()
         if mat is not None:
             # Draw drawing bounding box
-            drawing_box = cv2.perspectiveTransform(ar.DRAW_REF.reshape((-1,1,2)), mat)
+            drawing_box = cv2.perspectiveTransform(DRAW_REF.reshape((-1,1,2)), mat)
             img_tmp = cv2.polylines(img_tmp, [drawing_box.astype(np.int32)], True, (0,0,255), 2)
 
         return img_tmp
 
     def render_game(self, img):
-        mat = ar.findHomography(img)
+        mat = ar.findHomography(img, CORNERS_REF)
         frame_snake = self.animator.current_frame
 
         if mat is not None and frame_snake is not None:
             img_snake = frame_snake[0]
             anchor_snake = frame_snake[1]
             position_snake = (int(self.model.x-anchor_snake[0]), int(self.model.y-anchor_snake[1]))
-            img_render = ar.render(img, img_snake, position_snake, mat)
+            img_render = ar.render(img, img_snake, position_snake, mat, (BOARD_SIZE,BOARD_SIZE))
             return img_render
 
         return img
