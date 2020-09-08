@@ -4,7 +4,6 @@ import triangulation
 import animation
 import snake
 import ar
-import time
 
 # Photo of scene
 img = cv2.imread('img/snake_game_1.jpg')
@@ -14,7 +13,7 @@ cv2.waitKey(0)
 # Get drawing
 M = ar.findHomography(img)
 img_drawing = ar.getDrawing(img, M)
-snake_animator = snake.SnakeAnimator(img_drawing)
+snake_animator = snake.SnakeAnimator(img_drawing, snake.SnakeModel())
 
 img_tmp = snake_animator.drawing.copy()
 for triangle in snake_animator.triangles:
