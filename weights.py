@@ -7,12 +7,12 @@ import ar
 
 # Photo of scene
 img = cv2.imread('img/snake_game_1.jpg')
-cv2.imshow('Source', img)
-cv2.waitKey(0)
+# cv2.imshow('Source', img)
+# cv2.waitKey(0)
 
 # Get drawing
-M = ar.findHomography(img, snake.CORNERS_REF)
-img_drawing = ar.getDrawing(img, M, snake.DRAW_REF)
+mat = ar.findHomography(img, snake.CORNERS_REF)
+img_drawing = ar.getDrawing(img, mat, snake.DRAW_REF)
 snake_animator = snake.SnakeAnimator(img_drawing, snake.SnakeModel())
 
 img_tmp = snake_animator.drawing.copy()
@@ -37,9 +37,13 @@ for i in range(len(snake_animator.bones_default)):
 cv2.waitKey(0)
 
 for i, frame in enumerate(snake_animator.move_frames[0]):
-    img, anchor = frame
-    img_tmp = img.copy()
-    cv2.imshow('Frame' + str(i),img_tmp)
-cv2.waitKey(0)
+    img_frame, anchor_frame, mask_frame = frame
+    # Make anchor point fixed
+    position = (int(snake.DRAW_REF[0,0]+snake.bones_default_parameters['tail']['x']-anchor_frame[0]),
+                int(snake.DRAW_REF[0,1]+snake.bones_default_parameters['tail']['y']-anchor_frame[1]))
+
+    frame_tmp = ar.render(img, img_frame, mask_frame, position, mat)
+    cv2.imshow('Frame',frame_tmp)
+    cv2.waitKey(0)
 
 cv2.destroyAllWindows()

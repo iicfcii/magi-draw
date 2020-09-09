@@ -53,16 +53,16 @@ def getDrawing(img, M, draw_ref):
 
     return img_drawing
 
-def render(render, img, position, M, size):
+def render(render, img, mask, position, M):
     # Construct scene and mask
     x_scene = 0
     y_scene = 0
-    w_scene = int(size[0])
-    h_scene = int(size[1])
+    w_scene = int(position[0]+mask.shape[1])
+    h_scene = int(position[1]+mask.shape[0])
+
     mask_scene = np.zeros((h_scene, w_scene), np.uint8)
-    mask_scene[:,:] = 255
+    mask_scene[position[1]:h_scene,position[0]:w_scene] = mask
     img_scene = np.zeros((h_scene,w_scene,3),np.uint8)
-    img_scene[:,:] = (255,255,255)
 
     # Render scene before warp
     x_snake = position[0]

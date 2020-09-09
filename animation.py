@@ -242,7 +242,7 @@ def animate(bones_default, bones_n, triangles, weights):
 def warp(img, triangles, triangles_next, bone):
     rect_n = cv2.boundingRect(np.concatenate(triangles_next,axis=0)) # x, y, w, h
     img_n = np.zeros((rect_n[3],rect_n[2],3), np.uint8)
-    img_n[:,:] = (255,255,255)
+    mask_img_n = np.zeros((rect_n[3],rect_n[2],1), np.uint8)
 
     # Anchor position wrt to image
     # Anchor is the first point of first bone
@@ -277,6 +277,22 @@ def warp(img, triangles, triangles_next, bone):
         cv2.fillConvexPoly(mask_img_triangle_n, triangle_n_offset.astype(np.int32), 255)
         indices = (mask_img_triangle_n > 0).nonzero()
         indices_offset = (indices[0]+y-rect_n[1], indices[1]+x-rect_n[0])
-        img_n[indices_offset]=img_triangle_n[indices]
 
-    return (img_n, anchor)
+        # # NOTE: if fillConvexPoly uses lineType=cv2.LINE_AA, indices offset may be out of boundary
+        # # Following code delete those indices
+        # invalid = np.logical_or.reduce(((indices_offset[1] > rect_n[2]-1),
+        #                               (indices_offset[0] > rect_n[3]-1),
+        #                               (indices_offset[1] < 0),
+        #                               (indices_offset[0] < 0))).nonzero()
+        # indices_valid = (np.delete(indices[0], invalid),np.delete(indices[1], invalid))
+        # indices_offset_valid = (np.delete(indices_offset[0], invalid),np.delete(indices_offset[1], invalid))
+        # img_n[indices_offset_valid]=img_triangle_n[indices_valid]
+        # mask_img_n[indices_offset_valid] = 255
+
+        img_n[indices_offset]=img_triangle_n[indices]
+        mask_img_n[indices_offset] = 255
+
+    # Erode so that no background pixles are shown
+    mask_img_n = cv2.erode(mask_img_n,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)), borderType=cv2.BORDER_CONSTANT, borderValue=0)
+
+    return (img_n, anchor, mask_img_n)

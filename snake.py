@@ -185,7 +185,7 @@ class SnakeAnimator:
         self.move_frames_ptr = 0
         self.move_frames = {}
 
-        self.generate_move(0.5)
+        self.generate_move(1.0)
 
         t_generate = time.time()-t_start-t_weights
 
@@ -217,12 +217,13 @@ class SnakeAnimator:
                 bones_n = bones(para)
 
                 triangles_next = animation.animate(self.bones_default,bones_n,self.triangles,self.weights)
-                img_n, anchor = animation.warp(self.drawing, self.triangles, triangles_next, bones_n[0])
+                img_n, anchor, mask_img_n = animation.warp(self.drawing, self.triangles, triangles_next, bones_n[0])
 
                 img_n = cv2.resize(img_n, None, fx=ratio, fy=ratio)
                 anchor = anchor*ratio
+                mask_img_n = cv2.resize(mask_img_n, None, fx=ratio, fy=ratio)
 
-                frames.append((img_n, anchor))
+                frames.append((img_n, anchor, mask_img_n))
             self.move_frames[theta] = frames
 
 class SnakeModel:
@@ -255,7 +256,7 @@ class SnakeModel:
         self.y = self.y+self.v*np.sin(deg2rad(self.theta))
 
     def constrain(self, frame):
-        img, anchor = frame
+        img, anchor, mask = frame
         # Two rectangles
         x,y,w,h = self.rect
         x_snake = self.x-anchor[0]
@@ -317,8 +318,9 @@ class SnakeGame:
         if mat is not None and frame_snake is not None:
             img_snake = frame_snake[0]
             anchor_snake = frame_snake[1]
+            mask_snake = frame_snake[2]
             position_snake = (int(self.model.x-anchor_snake[0]), int(self.model.y-anchor_snake[1]))
-            img_render = ar.render(img, img_snake, position_snake, mat, (BOARD_SIZE,BOARD_SIZE))
+            img_render = ar.render(img, img_snake, mask_snake, position_snake, mat)
             return img_render
 
         return img
