@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-MESH_DIST = 20
+MESH_DIST = 30
 
 # Whether line (o1, p1) and (o2, p2) intersects
 # End points touching means not intersect
@@ -147,7 +147,7 @@ def contour(img_gray):
         points.append(p2.reshape((1,2)))
 
     contour = np.concatenate(points)
-    print("Contour Points Number", len(contour))
+    # print("Contour Points Number", len(contour))
 
     return contour
 

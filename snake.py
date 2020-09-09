@@ -3,6 +3,7 @@ import cv2
 import triangulation
 import animation
 import ar
+import threading
 import time
 
 MAX_SPEED = 15
@@ -288,28 +289,45 @@ class SnakeGame:
         self.model = SnakeModel()
         self.animator = None
 
+        # SCAN, PROCESS, GAME
+        self.state = 'SCAN'
+
     def set_animator(self, img):
-        if self.animator is not None: return False
+        if self.state != 'SCAN': return False
 
         if img is None: return False
 
         mat = ar.findHomography(img, CORNERS_REF)
         if mat is None: return False
         img_drawing = ar.getDrawing(img, mat, DRAW_REF)
-        self.animator = SnakeAnimator(img_drawing, self.model)
+
+        def init_animator():
+            self.animator = SnakeAnimator(img_drawing, self.model)
+            self.state = 'GAME'
+
+        self.state = 'PROCESS'
+        t = threading.Thread(target=init_animator)
+        t.start()
+
         return True
 
-    def render_drawing(self, img):
+    def render_scan(self, img):
         if img is None: return None
 
         mat = ar.findHomography(img, CORNERS_REF)
-        img_tmp = img.copy()
         if mat is not None:
-            # Draw drawing bounding box
-            drawing_box = cv2.perspectiveTransform(DRAW_REF.reshape((-1,1,2)), mat)
-            img_tmp = cv2.polylines(img_tmp, [drawing_box.astype(np.int32)], True, (0,0,255), 2)
+            return ar.render_lines(img, DRAW_REF.reshape((-1,1,2)), mat, color=(0,0,255), thickness=2)
 
-        return img_tmp
+        return img
+
+    def render_process(self, img):
+        if img is None: return None
+
+        mat = ar.findHomography(img, CORNERS_REF)
+        if mat is not None:
+            return ar.render_text(img, 'Processing', (DRAW_REF[3,0],DRAW_REF[3,1]+20), mat, fontScale=2, thickness=3, color=(255,0,0))
+
+        return img
 
     def render_game(self, img):
         mat = ar.findHomography(img, CORNERS_REF)
@@ -326,12 +344,16 @@ class SnakeGame:
         return img
 
     def update(self, img, key):
-        if self.animator is None:
+        if self.state == 'SCAN':
             if key is not None:
-                print('Preparing games')
                 self.set_animator(img)
-            return self.render_drawing(img)
-        else:
+
+            return self.render_scan(img)
+
+        if self.state == 'PROCESS':
+            return self.render_process(img)
+
+        if self.state == 'GAME':
             self.model.move(key)
             self.animator.update()
             self.model.constrain(self.animator.current_frame)

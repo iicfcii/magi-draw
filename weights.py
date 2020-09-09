@@ -13,6 +13,10 @@ img = cv2.imread('img/snake_game_1.jpg')
 # Get drawing
 mat = ar.findHomography(img, snake.CORNERS_REF)
 img_drawing = ar.getDrawing(img, mat, snake.DRAW_REF)
+img_tmp = ar.render_text(img, 'abcdefgpq', (0,0), mat, color=(255,0,0), fontScale=2, thickness=2)
+cv2.imshow('Text', img_tmp)
+cv2.waitKey(0)
+
 snake_animator = snake.SnakeAnimator(img_drawing, snake.SnakeModel())
 
 img_tmp = snake_animator.drawing.copy()

@@ -53,7 +53,9 @@ def getDrawing(img, M, draw_ref):
 
     return img_drawing
 
-def render(render, img, mask, position, M):
+def render(dst, img, mask, position, M):
+    position = (int(position[0]), int(position[1]))
+
     # Construct scene and mask
     x_scene = 0
     y_scene = 0
@@ -75,11 +77,29 @@ def render(render, img, mask, position, M):
         img_scene[y:y+h,x:x+w] = img[y-y_snake:y-y_snake+h,x-x_snake:x-x_snake+w]
 
     # Warp and mask
-    w_render = render.shape[1]
-    h_render = render.shape[0]
+    w_render = dst.shape[1]
+    h_render = dst.shape[0]
     img_scene_warpped = cv2.warpPerspective(img_scene, M, (w_render,h_render), flags=cv2.INTER_LINEAR)
     mask_scene_warpped = cv2.warpPerspective(mask_scene, M, (w_render,h_render), flags=cv2.INTER_LINEAR)
-    img_render = render.copy()
-    img_render[mask_scene_warpped>0] = img_scene_warpped[mask_scene_warpped>0]
+    dst[mask_scene_warpped>0] = img_scene_warpped[mask_scene_warpped>0]
 
-    return img_render
+    return dst
+
+def render_text(dst, text, position, M, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0,0,0), thickness=1):
+    ret, base = cv2.getTextSize(text, fontFace, fontScale, thickness)
+    w, h = ret
+    h=h+base # Include bottom like 'gpq'
+
+    org_text = (0,h-1-base)
+    img_text = np.zeros((h, w, 3), np.uint8)
+    img_text[:,:] = color
+    mask_text = np.zeros((h, w), np.uint8)
+    mask_text = cv2.putText(mask_text, text, org_text, fontFace, fontScale, (255,255,255), thickness=thickness)
+
+    return render(dst, img_text, mask_text, position, M)
+
+def render_lines(dst, lines, M, color=(0,0,0), thickness=1, isClosed=True):
+    lines_dst = cv2.perspectiveTransform(lines, M)
+    dst = cv2.polylines(dst, [lines_dst.astype(np.int32)], isClosed, color, thickness)
+
+    return dst

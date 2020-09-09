@@ -33,7 +33,7 @@ class App:
 
     def update(self):
         # print(self.key)
-        frame = self.game.update(self.vid.get_frame(), self.key)
+        frame = self.game.update(self.vid.get_fake_frame(), self.key)
         self.key = None
 
         # Draw on canvas
@@ -51,11 +51,18 @@ class VideoCapture:
 
         self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-        self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-        if self.width != width or self.height != height:
+        self.width = width
+        self.height = height
+
+        if self.width != self.vid.get(cv2.CAP_PROP_FRAME_WIDTH) or self.height != self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT):
             print('Video dimension not correct')
+
+    def get_fake_frame(self):
+        img = cv2.imread('img/snake_game_1.jpg')
+        img = cv2.resize(img, (int(self.width), int(self.height)))
+
+        return img
 
     def get_frame(self):
         if self.vid.isOpened():
