@@ -6,44 +6,41 @@ import ar
 import threading
 import time
 
-MAX_SPEED = 15
-SPEED_STEP = 15
-THETA_STEP = 90
-
 # Ratio between design pixel size and desired size
 # Camera needs to be high res otherwise image is scaled during warpPerspective
 # Adjust ratio to get desired drawing size for animation
 RATIO = 2.0
-MARKER_SIZE = 144*RATIO
-BOARD_SIZE = 500*RATIO
-DRAW_WIDTH = 250*RATIO
-DRAW_HEIGHT = 100*RATIO
+MARKER_SIZE = 120*RATIO
+BOARD_WIDTH = 400*RATIO
+BOARD_HEIGHT = 500*RATIO
+DRAW_WIDTH = 100*RATIO
+DRAW_HEIGHT = 250*RATIO
 CORNERS_REF = {
     7: np.array([[0,0],
                  [MARKER_SIZE,0],
                  [MARKER_SIZE,MARKER_SIZE],
                  [0,MARKER_SIZE]]),
-    23: np.array([[BOARD_SIZE-MARKER_SIZE,0],
-                  [BOARD_SIZE,0],
-                  [BOARD_SIZE,MARKER_SIZE],
-                  [BOARD_SIZE-MARKER_SIZE,MARKER_SIZE]]),
-    27: np.array([[BOARD_SIZE-MARKER_SIZE,BOARD_SIZE-MARKER_SIZE],
-                  [BOARD_SIZE,BOARD_SIZE-MARKER_SIZE],
-                  [BOARD_SIZE,BOARD_SIZE],
-                  [BOARD_SIZE-MARKER_SIZE,BOARD_SIZE]]),
-    42: np.array([[0,BOARD_SIZE-MARKER_SIZE],
-                  [MARKER_SIZE,BOARD_SIZE-MARKER_SIZE],
-                  [MARKER_SIZE,BOARD_SIZE],
-                  [0,BOARD_SIZE]]),
+    23: np.array([[BOARD_WIDTH+MARKER_SIZE,0],
+                  [BOARD_WIDTH+2*MARKER_SIZE,0],
+                  [BOARD_WIDTH+2*MARKER_SIZE,MARKER_SIZE],
+                  [BOARD_WIDTH+MARKER_SIZE,MARKER_SIZE]]),
+    27: np.array([[BOARD_WIDTH+MARKER_SIZE,BOARD_HEIGHT-MARKER_SIZE],
+                  [BOARD_WIDTH+2*MARKER_SIZE,BOARD_HEIGHT-MARKER_SIZE],
+                  [BOARD_WIDTH+2*MARKER_SIZE,BOARD_HEIGHT],
+                  [BOARD_WIDTH+MARKER_SIZE,BOARD_HEIGHT]]),
+    42: np.array([[0,BOARD_HEIGHT-MARKER_SIZE],
+                  [MARKER_SIZE,BOARD_HEIGHT-MARKER_SIZE],
+                  [MARKER_SIZE,BOARD_HEIGHT],
+                  [0,BOARD_HEIGHT]]),
 }
-BOARD_REF = np.array([[0,0],
-                      [BOARD_SIZE,0],
-                      [BOARD_SIZE,BOARD_SIZE],
-                      [0,BOARD_SIZE]])
-DRAW_REF = np.array([[(BOARD_SIZE-DRAW_WIDTH)/2,(BOARD_SIZE-DRAW_HEIGHT)/2],
-                     [(BOARD_SIZE+DRAW_WIDTH)/2,(BOARD_SIZE-DRAW_HEIGHT)/2],
-                     [(BOARD_SIZE+DRAW_WIDTH)/2,(BOARD_SIZE+DRAW_HEIGHT)/2],
-                     [(BOARD_SIZE-DRAW_WIDTH)/2,(BOARD_SIZE+DRAW_HEIGHT)/2]])
+BOARD_REF = np.array([[MARKER_SIZE,0],
+                      [BOARD_WIDTH+MARKER_SIZE,0],
+                      [BOARD_WIDTH+MARKER_SIZE,BOARD_HEIGHT],
+                      [0,BOARD_HEIGHT]])
+DRAW_REF = np.array([[BOARD_WIDTH+MARKER_SIZE+(MARKER_SIZE-DRAW_WIDTH)/2, (BOARD_HEIGHT-DRAW_HEIGHT)/2],
+                     [BOARD_WIDTH+MARKER_SIZE+(MARKER_SIZE+DRAW_WIDTH)/2, (BOARD_HEIGHT-DRAW_HEIGHT)/2],
+                     [BOARD_WIDTH+MARKER_SIZE+(MARKER_SIZE+DRAW_WIDTH)/2, (BOARD_HEIGHT+DRAW_HEIGHT)/2],
+                     [BOARD_WIDTH+MARKER_SIZE+(MARKER_SIZE-DRAW_WIDTH)/2, (BOARD_HEIGHT+DRAW_HEIGHT)/2]])
 
 
 # Snake bones
@@ -111,50 +108,34 @@ bones_default_parameters = {
     'c_head': {'theta': 0, 'l': 80},
 }
 
-move_frames_parameters = [
-    bones_default_parameters,
+slither_frames_parameters = [
     {
-        'tail': {'x': 70, 'y': 100, 'theta': 0},
-        'tail_a': {'theta': 10, 'l': 80},
-        'a_b': {'theta': -30, 'l': 100},
-        'b_c': {'theta': 40, 'l': 100},
-        'c_head': {'theta': -30, 'l': 80},
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
+        'tail_a': {'theta': 0, 'l': 80},
+        'a_b': {'theta': 0, 'l': 100},
+        'b_c': {'theta': 0, 'l': 100},
+        'c_head': {'theta': 0, 'l': 80},
     },
     {
-        'tail': {'x': 70, 'y': 100, 'theta': 0},
+        'tail': {'x': 70, 'y': 100, 'theta':-90},
         'tail_a': {'theta': 15, 'l': 80},
         'a_b': {'theta': -45, 'l': 100},
         'b_c': {'theta': 60, 'l': 100},
         'c_head': {'theta': -45, 'l': 80},
     },
     {
-        'tail': {'x': 70, 'y': 100, 'theta': 0},
-        'tail_a': {'theta': 10, 'l': 80},
-        'a_b': {'theta': -30, 'l': 100},
-        'b_c': {'theta': 40, 'l': 100},
-        'c_head': {'theta': -30, 'l': 80},
-    },
-    bones_default_parameters,
-    {
-        'tail': {'x': 70, 'y': 100, 'theta': 0},
-        'tail_a': {'theta': -10, 'l': 80},
-        'a_b': {'theta': 30, 'l': 100},
-        'b_c': {'theta': -40, 'l': 100},
-        'c_head': {'theta': 30, 'l': 80},
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
+        'tail_a': {'theta': 0, 'l': 80},
+        'a_b': {'theta': 0, 'l': 100},
+        'b_c': {'theta': 0, 'l': 100},
+        'c_head': {'theta': 0, 'l': 80},
     },
     {
-        'tail': {'x': 70, 'y': 100, 'theta': 0},
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
         'tail_a': {'theta': -15, 'l': 80},
         'a_b': {'theta': 45, 'l': 100},
         'b_c': {'theta': -60, 'l': 100},
         'c_head': {'theta': 45, 'l': 80},
-    },
-    {
-        'tail': {'x': 70, 'y': 100, 'theta': 0},
-        'tail_a': {'theta': -10, 'l': 80},
-        'a_b': {'theta': 30, 'l': 100},
-        'b_c': {'theta': -40, 'l': 100},
-        'c_head': {'theta': 30, 'l': 80},
     },
 ]
 
@@ -179,79 +160,75 @@ class SnakeAnimator:
 
         t_constrain = time.time()-t_start-t_tri
 
-        self.weights = animation.calcWeights(self.bones_default,self.triangles)
+        self.weights = animation.calcWeights(self.bones_default, self.triangles)
 
         t_weights = time.time()-t_start-t_constrain
 
-        self.move_frames_ptr = 0
-        self.move_frames = {}
+        self.slither_frames_ptr = 0
+        self.slither_frames = []
 
         self.generate_move(1.0)
 
         t_generate = time.time()-t_start-t_weights
 
-        print(t_tri, t_constrain, t_weights, t_generate)
+        print('Triangulation', t_tri)
+        print('Constrained Triangulation', t_constrain)
+        print('Weights', t_weights)
+        print('Animation', t_generate)
 
         self.current_frame = None
 
     def update(self):
-        assert len(self.move_frames) != 0
-        assert self.model.theta in self.move_frames
+        assert len(self.slither_frames) != 0
 
         if self.model.v != 0:
-            if self.move_frames_ptr == len(self.move_frames[self.model.theta])-1:
-                self.move_frames_ptr = 0
+            if self.slither_frames_ptr == len(self.slither_frames)-1:
+                self.slither_frames_ptr = 0
             else:
-                self.move_frames_ptr += 1
+                self.slither_frames_ptr += 1
         else:
-            self.move_frames_ptr = 0
+            self.slither_frames_ptr = 0
 
-        self.current_frame = self.move_frames[self.model.theta][self.move_frames_ptr]
+        self.current_frame = self.slither_frames[self.slither_frames_ptr]
 
     def generate_move(self, ratio):
-        # TODO: Avoid generating same frame
-        for theta in range(0,360,THETA_STEP):
-            # Move frames for every angles
-            frames = []
-            for para in move_frames_parameters:
-                para['tail']['theta'] = theta
-                bones_n = bones(para)
+        for para in slither_frames_parameters:
+            bones_n = bones(para)
 
-                triangles_next = animation.animate(self.bones_default,bones_n,self.triangles,self.weights)
-                img_n, anchor, mask_img_n = animation.warp(self.drawing, self.triangles, triangles_next, bones_n[0])
+            triangles_next = animation.animate(self.bones_default,bones_n,self.triangles,self.weights)
+            img_n, anchor, mask_img_n = animation.warp(self.drawing, self.triangles, triangles_next, bones_n[0])
 
-                img_n = cv2.resize(img_n, None, fx=ratio, fy=ratio)
-                anchor = anchor*ratio
-                mask_img_n = cv2.resize(mask_img_n, None, fx=ratio, fy=ratio)
+            img_n = cv2.resize(img_n, None, fx=ratio, fy=ratio)
+            anchor = anchor*ratio
+            mask_img_n = cv2.resize(mask_img_n, None, fx=ratio, fy=ratio)
 
-                frames.append((img_n, anchor, mask_img_n))
-            self.move_frames[theta] = frames
+            self.slither_frames.append((img_n, anchor, mask_img_n))
 
 class SnakeModel:
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
-        self.v = 0.0
+        self.v = 1.0
         self.theta = 0
-        self.rect = (0,0,BOARD_SIZE,BOARD_SIZE) # Bounding box
+        self.rect = (MARKER_SIZE,0,BOARD_WIDTH,BOARD_HEIGHT) # Bounding box
 
     def move(self, key):
-        if key == 87: # w
-            # Speed up
-            self.v += SPEED_STEP
-            if self.v > MAX_SPEED:
-                self.v = MAX_SPEED
-        if key == 83: # s
-            # Slow down
-            self.v -= SPEED_STEP
-            if self.v < 0:
-                self.v = 0
-        if key == 65: # a
-            # Turn left
-            self.theta = (self.theta-THETA_STEP)%360
-        if key == 68: # d
-            # Turn right
-            self.theta = (self.theta+THETA_STEP)%360
+        # if key == 87: # w
+        #     # Speed up
+        #     self.v += SPEED_STEP
+        #     if self.v > MAX_SPEED:
+        #         self.v = MAX_SPEED
+        # if key == 83: # s
+        #     # Slow down
+        #     self.v -= SPEED_STEP
+        #     if self.v < 0:
+        #         self.v = 0
+        # if key == 65: # a
+        #     # Turn left
+        #     self.theta = (self.theta-THETA_STEP)%360
+        # if key == 68: # d
+        #     # Turn right
+        #     self.theta = (self.theta+THETA_STEP)%360
 
         self.x = self.x+self.v*np.cos(deg2rad(self.theta))
         self.y = self.y+self.v*np.sin(deg2rad(self.theta))
@@ -300,6 +277,8 @@ class SnakeGame:
         mat = ar.findHomography(img, CORNERS_REF)
         if mat is None: return False
         img_drawing = ar.getDrawing(img, mat, DRAW_REF)
+        # Rotate depending on layout
+        img_drawing = cv2.rotate(img_drawing, cv2.ROTATE_90_CLOCKWISE)
 
         def init_animator():
             self.animator = SnakeAnimator(img_drawing, self.model)
@@ -325,7 +304,7 @@ class SnakeGame:
 
         mat = ar.findHomography(img, CORNERS_REF)
         if mat is not None:
-            return ar.render_text(img, 'Processing', (DRAW_REF[3,0],DRAW_REF[3,1]+20), mat, fontScale=2, thickness=3, color=(255,0,0))
+            return ar.render_text(img, 'Processing', (BOARD_REF[0,0],BOARD_REF[0,1]), mat, fontScale=2, thickness=3, color=(255,0,0))
 
         return img
 

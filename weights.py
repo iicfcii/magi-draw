@@ -13,8 +13,8 @@ img = cv2.imread('img/snake_game_1.jpg')
 # Get drawing
 mat = ar.findHomography(img, snake.CORNERS_REF)
 img_drawing = ar.getDrawing(img, mat, snake.DRAW_REF)
-img_tmp = ar.render_text(img, 'abcdefgpq', (0,0), mat, color=(255,0,0), fontScale=2, thickness=2)
-cv2.imshow('Text', img_tmp)
+img_drawing = cv2.rotate(img_drawing, cv2.ROTATE_90_CLOCKWISE)
+cv2.imshow('Drawing', img_drawing)
 cv2.waitKey(0)
 
 snake_animator = snake.SnakeAnimator(img_drawing, snake.SnakeModel())
@@ -40,13 +40,12 @@ for i in range(len(snake_animator.bones_default)):
     cv2.imshow('Weights' + str(i),img_tmp)
 cv2.waitKey(0)
 
-for i, frame in enumerate(snake_animator.move_frames[0]):
+for frame in snake_animator.slither_frames:
     img_frame, anchor_frame, mask_frame = frame
     # Make anchor point fixed
-    position = (int(snake.DRAW_REF[0,0]+snake.bones_default_parameters['tail']['x']-anchor_frame[0]),
-                int(snake.DRAW_REF[0,1]+snake.bones_default_parameters['tail']['y']-anchor_frame[1]))
+    position = (int(snake.BOARD_REF[0,0]),int(snake.BOARD_REF[0,1]))
 
-    frame_tmp = ar.render(img, img_frame, mask_frame, position, mat)
+    frame_tmp = ar.render(img.copy(), img_frame, mask_frame, position, mat)
     cv2.imshow('Frame',frame_tmp)
     cv2.waitKey(0)
 

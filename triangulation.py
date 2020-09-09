@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-MESH_DIST = 30
+MESH_DIST = 20
 
 # Whether line (o1, p1) and (o2, p2) intersects
 # End points touching means not intersect

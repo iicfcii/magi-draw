@@ -63,7 +63,6 @@ def render(dst, img, mask, position, M):
     h_scene = int(position[1]+mask.shape[0])
 
     mask_scene = np.zeros((h_scene, w_scene), np.uint8)
-    mask_scene[position[1]:h_scene,position[0]:w_scene] = mask
     img_scene = np.zeros((h_scene,w_scene,3),np.uint8)
 
     # Render scene before warp
@@ -75,6 +74,7 @@ def render(dst, img, mask, position, M):
     if rect is not None:
         x,y,w,h = rect
         img_scene[y:y+h,x:x+w] = img[y-y_snake:y-y_snake+h,x-x_snake:x-x_snake+w]
+        mask_scene[y:y+h,x:x+w] = mask[y-y_snake:y-y_snake+h,x-x_snake:x-x_snake+w]
 
     # Warp and mask
     w_render = dst.shape[1]

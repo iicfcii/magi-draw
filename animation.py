@@ -112,7 +112,7 @@ def calcWeight(p, bone, triangles):
     if d > 150: return 0 # Too far away, nearly zero
 
     path = findPath(p, bone, triangles)
-    if len(path) == 0: print('No path found!')
+    if path is None: print('No path found!')
 
     d = 0
     for i in range(1,len(path)):
