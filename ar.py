@@ -8,7 +8,7 @@ PARA.adaptiveThreshWinSizeMin = 3
 PARA.adaptiveThreshWinSizeMax = 53
 PARA.adaptiveThreshWinSizeStep = 10
 
-def findHomography(img, corners_ref):
+def homography(img, corners_ref):
     # Detect markers
     corners, ids, rejects = cv2.aruco.detectMarkers(img, DICT, parameters=PARA) # Default parameters
     if ids is None:
@@ -35,7 +35,7 @@ def findHomography(img, corners_ref):
     M, mask = cv2.findHomography(corners_src,corners_dst)
     return M
 
-def getDrawing(img, M, draw_ref):
+def drawing(img, M, draw_ref):
     # Warp drawing
     size = (int(draw_ref[2,0]),int(draw_ref[2,1]))
     img_drawing = cv2.warpPerspective(img, M, size, flags=cv2.WARP_INVERSE_MAP+cv2.INTER_LINEAR)
@@ -62,6 +62,8 @@ def render(dst, img, mask, position, M):
     w_scene = int(position[0]+mask.shape[1])
     h_scene = int(position[1]+mask.shape[0])
 
+    if w_scene <=0 or h_scene <= 0: return dst
+
     mask_scene = np.zeros((h_scene, w_scene), np.uint8)
     img_scene = np.zeros((h_scene,w_scene,3),np.uint8)
 
@@ -85,7 +87,7 @@ def render(dst, img, mask, position, M):
 
     return dst
 
-def render_text(dst, text, position, M, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0,0,0), thickness=1):
+def render_text(dst, text, position, M, fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1, color=(0,0,0), thickness=1):
     ret, base = cv2.getTextSize(text, fontFace, fontScale, thickness)
     w, h = ret
     h=h+base # Include bottom like 'gpq'

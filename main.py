@@ -1,8 +1,8 @@
 import tkinter
 import cv2
 import PIL.Image, PIL.ImageTk
-
 import numpy as np
+
 import ar
 import triangulation
 import animation
@@ -11,7 +11,7 @@ import snake
 class App:
     def __init__(self):
         self.window = tkinter.Tk()
-        self.window.title('Draw and Play')
+        self.window.title('Orimagi')
         self.window.bind("<Key>", self.key)
 
         self.width = 1280
@@ -41,13 +41,13 @@ class App:
             self.img = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
             self.canvas.create_image(0, 0, image=self.img, anchor=tkinter.NW)
 
-        self.window.after(15, self.update)
+        self.window.after(10, self.update)
 
 class VideoCapture:
     def __init__(self, width, height):
-        self.vid = self.vid = cv2.VideoCapture(0)
+        self.vid = self.vid = cv2.VideoCapture(1)
         if not self.vid.isOpened():
-            print('Video source not correct')
+            print('Video eat_countersource nself.X_RANGEot correct')
 
         self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
@@ -59,7 +59,7 @@ class VideoCapture:
             print('Video dimension not correct')
 
     def get_fake_frame(self):
-        img = cv2.imread('img/snake_game_3.jpg')
+        img = cv2.imread('img/snake_game_2.jpg')
         img = cv2.resize(img, (int(self.width), int(self.height)))
 
         return img
