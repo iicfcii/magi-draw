@@ -59,7 +59,7 @@ class VideoCapture:
             print('Video dimension not correct')
 
     def get_fake_frame(self):
-        img = cv2.imread('img/snake_game_1.jpg')
+        img = cv2.imread('img/snake_game_3.jpg')
         img = cv2.resize(img, (int(self.width), int(self.height)))
 
         return img

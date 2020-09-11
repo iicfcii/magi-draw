@@ -100,7 +100,7 @@ def bones(para):
 
     return bones
 
-bones_default_parameters = {
+default_parameters = {
     'tail': {'x': 70, 'y': 100, 'theta': 0},
     'tail_a': {'theta': 0, 'l': 80},
     'a_b': {'theta': 0, 'l': 100},
@@ -108,7 +108,7 @@ bones_default_parameters = {
     'c_head': {'theta': 0, 'l': 80},
 }
 
-slither_frames_parameters = [
+slither_parameters = [
     {
         'tail': {'x': 70, 'y': 100, 'theta': -90},
         'tail_a': {'theta': 0, 'l': 80},
@@ -118,10 +118,24 @@ slither_frames_parameters = [
     },
     {
         'tail': {'x': 70, 'y': 100, 'theta':-90},
+        'tail_a': {'theta': 10, 'l': 80},
+        'a_b': {'theta': -30, 'l': 100},
+        'b_c': {'theta': 40, 'l': 100},
+        'c_head': {'theta': -30, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta':-90},
         'tail_a': {'theta': 15, 'l': 80},
         'a_b': {'theta': -45, 'l': 100},
         'b_c': {'theta': 60, 'l': 100},
         'c_head': {'theta': -45, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta':-90},
+        'tail_a': {'theta': 10, 'l': 80},
+        'a_b': {'theta': -30, 'l': 100},
+        'b_c': {'theta': 40, 'l': 100},
+        'c_head': {'theta': -30, 'l': 80},
     },
     {
         'tail': {'x': 70, 'y': 100, 'theta': -90},
@@ -132,43 +146,116 @@ slither_frames_parameters = [
     },
     {
         'tail': {'x': 70, 'y': 100, 'theta': -90},
+        'tail_a': {'theta': -10, 'l': 80},
+        'a_b': {'theta': 30, 'l': 100},
+        'b_c': {'theta': -40, 'l': 100},
+        'c_head': {'theta': 30, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
         'tail_a': {'theta': -15, 'l': 80},
         'a_b': {'theta': 45, 'l': 100},
         'b_c': {'theta': -60, 'l': 100},
         'c_head': {'theta': 45, 'l': 80},
     },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
+        'tail_a': {'theta': -10, 'l': 80},
+        'a_b': {'theta': 30, 'l': 100},
+        'b_c': {'theta': -40, 'l': 100},
+        'c_head': {'theta': 30, 'l': 80},
+    },
 ]
+
+turn_left_parameters = [
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
+        'tail_a': {'theta': 0, 'l': 80},
+        'a_b': {'theta': 0, 'l': 100},
+        'b_c': {'theta': 0, 'l': 100},
+        'c_head': {'theta': 0, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
+        'tail_a': {'theta': 20, 'l': 80},
+        'a_b': {'theta': -20, 'l': 100},
+        'b_c': {'theta': -30, 'l': 100},
+        'c_head': {'theta': 30, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
+        'tail_a': {'theta': 10, 'l': 80},
+        'a_b': {'theta': -10, 'l': 100},
+        'b_c': {'theta': -20, 'l': 100},
+        'c_head': {'theta': 20, 'l': 80},
+    },
+]
+
+turn_right_parameters = [
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
+        'tail_a': {'theta': 0, 'l': 80},
+        'a_b': {'theta': 0, 'l': 100},
+        'b_c': {'theta': 0, 'l': 100},
+        'c_head': {'theta': 0, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
+        'tail_a': {'theta': -20, 'l': 80},
+        'a_b': {'theta': 20, 'l': 100},
+        'b_c': {'theta': 30, 'l': 100},
+        'c_head': {'theta': -30, 'l': 80},
+    },
+    {
+        'tail': {'x': 70, 'y': 100, 'theta': -90},
+        'tail_a': {'theta': -10, 'l': 80},
+        'a_b': {'theta': 10, 'l': 100},
+        'b_c': {'theta': 20, 'l': 100},
+        'c_head': {'theta': -20, 'l': 80},
+    },
+]
+
+
+class Animation:
+    def __init__(self, frames):
+        assert len(frames) != 0
+        self.frames = frames
+        self.ptr = 0
+
+    def frame(self):
+        return self.frames[self.ptr]
+
+    def reset(self):
+        self.ptr = 0
+
+    def update(self):
+        if self.ptr == len(self.frames)-1:
+            self.ptr = 0
+        else:
+            self.ptr += 1
 
 class SnakeAnimator:
     def __init__(self, drawing, model):
         self.drawing = drawing
         self.model = model
+        self.ratio = 1.0
 
-        self.bones_default = bones(bones_default_parameters)
+        self.default = bones(default_parameters)
 
         # Skinning(triangulation and weight calculation)
         t_start = time.time()
-
         img_gray = cv2.cvtColor(self.drawing, cv2.COLOR_BGR2GRAY)
         contour = triangulation.contour(img_gray)
         keypoints = triangulation.keypoints_uniform(img_gray, contour)
         triangles_unconstrained, edges = triangulation.triangulate(contour, keypoints)
-
         t_tri = time.time()-t_start
-
         self.triangles = triangulation.constrain(contour, triangles_unconstrained, edges)
-
         t_constrain = time.time()-t_start-t_tri
-
-        self.weights = animation.calcWeights(self.bones_default, self.triangles)
-
+        self.weights = animation.calcWeights(self.default, self.triangles)
         t_weights = time.time()-t_start-t_constrain
-
-        self.slither_frames_ptr = 0
-        self.slither_frames = []
-
-        self.generate_move(1.0)
-
+        self.slither = self.generate_animation(slither_parameters)
+        self.turn_left = self.generate_animation(turn_left_parameters)
+        self.turn_right = self.generate_animation(turn_right_parameters)
         t_generate = time.time()-t_start-t_weights
 
         print('Triangulation', t_tri)
@@ -179,64 +266,86 @@ class SnakeAnimator:
         self.current_frame = None
 
     def update(self):
-        assert len(self.slither_frames) != 0
-
-        if self.model.v != 0:
-            if self.slither_frames_ptr == len(self.slither_frames)-1:
-                self.slither_frames_ptr = 0
-            else:
-                self.slither_frames_ptr += 1
+        if self.model.v > 0:
+            self.current_frame = self.turn_right.frame()
+            self.turn_right.update()
+            self.slither.reset()
+        elif self.model.v < 0:
+            self.current_frame = self.turn_left.frame()
+            self.turn_left.update()
+            self.slither.reset()
         else:
-            self.slither_frames_ptr = 0
+            self.current_frame = self.slither.frame()
+            self.slither.update()
+            self.turn_right.reset()
+            self.turn_left.reset()
 
-        self.current_frame = self.slither_frames[self.slither_frames_ptr]
+    def generate_animation(self, params):
+        frames = []
 
-    def generate_move(self, ratio):
-        for para in slither_frames_parameters:
-            bones_n = bones(para)
+        for i in range(len(params)):
+            # Find same frame
+            index_same = -1
+            for j in range(i):
+                if params[i] == params[j]:
+                    index_same = j
 
-            triangles_next = animation.animate(self.bones_default,bones_n,self.triangles,self.weights)
-            img_n, anchor, mask_img_n = animation.warp(self.drawing, self.triangles, triangles_next, bones_n[0])
+            if index_same != -1:
+                # Copy frame
+                frames.append(frames[index_same])
+            else:
+                bones_n = bones(params[i])
 
-            img_n = cv2.resize(img_n, None, fx=ratio, fy=ratio)
-            anchor = anchor*ratio
-            mask_img_n = cv2.resize(mask_img_n, None, fx=ratio, fy=ratio)
+                triangles_next = animation.animate(self.default,bones_n,self.triangles,self.weights)
+                img_n, anchor, mask_img_n = animation.warp(self.drawing, self.triangles, triangles_next, bones_n[0])
 
-            self.slither_frames.append((img_n, anchor, mask_img_n))
+
+                img_n = cv2.resize(img_n, None, fx=self.ratio, fy=self.ratio)
+                anchor = anchor*self.ratio
+                mask_img_n = cv2.resize(mask_img_n, None, fx=self.ratio, fy=self.ratio)
+
+                frames.append((img_n, anchor, mask_img_n))
+
+        return Animation(frames)
 
 class SnakeModel:
     def __init__(self):
-        self.x = 0.0
-        self.y = 0.0
-        self.v = 1.0
-        self.theta = 0
-        self.rect = (MARKER_SIZE,0,BOARD_WIDTH,BOARD_HEIGHT) # Bounding box
+        self.RECT = (370,420,910-370,980-420) # Bounding box
+        self.X_DEFAULT = self.RECT[0]+self.RECT[2]/2
+        self.Y_DEFAULT = self.RECT[1]+self.RECT[3]
+        self.SPEED = 45 # Horizontal speed
+        self.ACC = self.SPEED/3 # Sync with number of animation frames
+
+        self.x = self.X_DEFAULT
+        self.y = self.Y_DEFAULT
+        self.v = 0.0
+
+        # self.RECT = (MARKER_SIZE,0,BOARD_WIDTH,BOARD_HEIGHT) # Bounding box
+
+
+    # Physics
+    def update(self):
+        self.x = self.x + self.v # Velocity
+        self.v = self.v - np.sign(self.v)*self.ACC # Acceleration
+        if np.abs(self.v) < 1: self.v = 0
 
     def move(self, key):
-        # if key == 87: # w
-        #     # Speed up
-        #     self.v += SPEED_STEP
-        #     if self.v > MAX_SPEED:
-        #         self.v = MAX_SPEED
-        # if key == 83: # s
-        #     # Slow down
-        #     self.v -= SPEED_STEP
-        #     if self.v < 0:
-        #         self.v = 0
-        # if key == 65: # a
-        #     # Turn left
-        #     self.theta = (self.theta-THETA_STEP)%360
-        # if key == 68: # d
-        #     # Turn right
-        #     self.theta = (self.theta+THETA_STEP)%360
+        if self.v == 0:
+            if key == 65: # a
+                self.v = -self.SPEED
+            if key == 68: # d
+                self.v = self.SPEED
 
-        self.x = self.x+self.v*np.cos(deg2rad(self.theta))
-        self.y = self.y+self.v*np.sin(deg2rad(self.theta))
+    def constrain_simple(self):
+        if self.x > self.RECT[0]+self.RECT[2]:
+            self.x = self.RECT[0]+self.RECT[2]
+        if self.x < self.RECT[0]:
+            self.x = self.RECT[0]
 
     def constrain(self, frame):
         img, anchor, mask = frame
         # Two rectangles
-        x,y,w,h = self.rect
+        x,y,w,h = self.RECT
         x_snake = self.x-anchor[0]
         y_snake = self.y-anchor[1]
         w_snake = img.shape[1]
@@ -258,8 +367,8 @@ class SnakeModel:
                 else:
                     self.y -= dh
         else:
-            self.x = anchor[0] + x
-            self.y = anchor[1] + y
+            self.x = self.X_DEFAULT
+            self.y = self.Y_DEFAULT
 
 class SnakeGame:
     def __init__(self):
@@ -333,8 +442,10 @@ class SnakeGame:
             return self.render_process(img)
 
         if self.state == 'GAME':
+            self.model.update() # Orders matter
             self.model.move(key)
             self.animator.update()
-            self.model.constrain(self.animator.current_frame)
+            self.model.constrain_simple()
+            # self.model.constrain(self.animator.current_frame)
 
             return self.render_game(img)

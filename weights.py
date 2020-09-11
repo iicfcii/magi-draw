@@ -6,7 +6,7 @@ import snake
 import ar
 
 # Photo of scene
-img = cv2.imread('img/snake_game_1.jpg')
+img = cv2.imread('img/snake_game_3.jpg')
 # cv2.imshow('Source', img)
 # cv2.waitKey(0)
 
@@ -14,22 +14,22 @@ img = cv2.imread('img/snake_game_1.jpg')
 mat = ar.findHomography(img, snake.CORNERS_REF)
 img_drawing = ar.getDrawing(img, mat, snake.DRAW_REF)
 img_drawing = cv2.rotate(img_drawing, cv2.ROTATE_90_CLOCKWISE)
-cv2.imshow('Drawing', img_drawing)
-cv2.waitKey(0)
+# cv2.imshow('Drawing', img_drawing)
+# cv2.waitKey(0)
 
 snake_animator = snake.SnakeAnimator(img_drawing, snake.SnakeModel())
 
 img_tmp = snake_animator.drawing.copy()
 for triangle in snake_animator.triangles:
     cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
-cv2.imshow('Triangulation', img_tmp)
-cv2.waitKey(0)
+# cv2.imshow('Triangulation', img_tmp)
+# cv2.waitKey(0)
 
-for i in range(len(snake_animator.bones_default)):
+for i in range(len(snake_animator.default)):
     img_tmp = snake_animator.drawing.copy()
     for triangle in snake_animator.triangles:
         cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
-    for bone in snake_animator.bones_default:
+    for bone in snake_animator.default:
         bone = bone.astype(np.int32)
         cv2.polylines(img_tmp, [bone.reshape((2,2))], True, (255,0,0), 2)
         cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
@@ -40,7 +40,7 @@ for i in range(len(snake_animator.bones_default)):
     cv2.imshow('Weights' + str(i),img_tmp)
 cv2.waitKey(0)
 
-for frame in snake_animator.slither_frames:
+for frame in snake_animator.turn_right.frames:
     img_frame, anchor_frame, mask_frame = frame
     # Make anchor point fixed
     position = (int(snake.BOARD_REF[0,0]),int(snake.BOARD_REF[0,1]))
