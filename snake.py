@@ -359,7 +359,7 @@ class SnakeAnimator(animation.Animator):
             self.turn_right.update()
             self.slither.reset()
             self.eat.reset()
-            self.turn_left.reset()            
+            self.turn_left.reset()
         elif self.snake_model.v < 0:
             self.current_frame = self.turn_left.frame()
             self.turn_left.update()
@@ -502,6 +502,9 @@ class SnakeGame:
         # SCAN, PROCESS, GAME
         self.state = 'SCAN'
 
+    def reset(self):
+        self.state = 'SCAN'
+
     def set_animator(self, img):
         if self.state != 'SCAN': return False
 
@@ -533,7 +536,8 @@ class SnakeGame:
         if mat is not None:
             img = ar.render_lines(img, SNAKE_DRAW_REF.reshape((-1,1,2)), mat, color=PINK_COLOR, thickness=2)
             img = ar.render_lines(img, FOOD_DRAW_REF.reshape((-1,1,2)), mat, color=PINK_COLOR, thickness=2)
-            return ar.render_text(img, 'Scan your drawing...', INFO_REF, mat, fontScale=2, thickness=3, color=PINK_COLOR)
+            img = ar.render_text(img, 'Press any key to start.', INFO_REF, mat, fontScale=2, thickness=3, color=PINK_COLOR)
+            return img
 
         return img
 
