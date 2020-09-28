@@ -24,7 +24,7 @@ class App:
 
         self.home_view = HomeView(self.window)
         self.snake_view = SnakeView(self.window, self.vid, self.key_manager)
-        self.menu_view = MenuView(self.window, self.show_view, self.key_manager)
+        self.menu_view = MenuView(self.window, self.show_view, self.key_manager, self.vid)
         self.show_view('home')
 
         self.window.mainloop()
@@ -38,20 +38,36 @@ class App:
             self.home_view.frame.pack()
             self.snake_view.frame.pack_forget()
 
-
 class MenuView:
-    def __init__(self, window, show_view, key_manager):
+    def __init__(self, window, show_view, key_manager, vid):
         self.key_manager = key_manager
+        self.vid = vid
 
         self.frame = Frame(window)
-        self.frame.pack(side=BOTTOM)
+        self.frame.pack(fill=X, side=BOTTOM)
 
-        self.home_button = Button(self.frame, text="Home", font= ('Arial', '12'), command=self.show_home)
+        self.home_button = Button(self.frame, text="Home", font=('Arial', '12'), command=self.show_home)
         self.home_button.pack(padx=5, pady=5, side=LEFT)
-        self.snake_button = Button(self.frame, text="Snake", font= ('Arial', '12'), command=self.show_snake)
+        self.snake_button = Button(self.frame, text="Snake", font=('Arial', '12'), command=self.show_snake)
         self.snake_button.pack(padx=5, pady=5, side=LEFT)
 
+
+        self.vid_id = IntVar(self.frame)
+        if len(self.vid.available) > 0:
+            self.vid_id.set(self.vid.available[0])
+            self.vid.start(self.vid.available[0])
+        else:
+            self.vid_id.set(-1)
+        self.options = OptionMenu(self.frame, self.vid_id, *self.vid.available, command=self.on_vid_change)
+        self.options.pack(side=RIGHT)
+
+        self.label = Label(self.frame, text="Set video device", font=('Arial', '12'))
+        self.label.pack(side=RIGHT)
+
         self.show_view = show_view
+
+    def on_vid_change(self, value):
+        self.vid.start(value)
 
     def show_snake(self):
         self.key_manager.set(None)
@@ -119,11 +135,22 @@ class KeyManager:
 
 class VideoCapture:
     def __init__(self, width, height):
-        self.vid = cv2.VideoCapture(0)
         # self.vid = cv2.VideoCapture('img/snake_game_video_4.MOV')
 
-        assert self.vid.isOpened()
+        self.available = []
+        for i in range(5):
+            vid = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+            if vid.isOpened():
+                self.available.append(i)
+                vid.release()
 
+        self.vid = None
+
+    def start(self, id):
+        if self.vid is not None and self.vid.isOpened():
+             self.vid.release()
+
+        self.vid = cv2.VideoCapture(id, cv2.CAP_DSHOW)
         self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, GAME_VIEW_WIDTH)
         self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, GAME_VIEW_HEIGHT)
 
@@ -134,7 +161,7 @@ class VideoCapture:
         return img
 
     def get_frame(self):
-        if self.vid.isOpened():
+        if self.vid is not None and self.vid.isOpened():
             ret, frame = self.vid.read()
             if ret:
                 if GAME_VIEW_WIDTH != self.vid.get(cv2.CAP_PROP_FRAME_WIDTH) or GAME_VIEW_HEIGHT != self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT):
@@ -143,9 +170,6 @@ class VideoCapture:
 
         return None
 
-    def release(self):
-        if self.vid.isOpened():
-            self.vid.release()
 
 if __name__ == '__main__':
     App()
