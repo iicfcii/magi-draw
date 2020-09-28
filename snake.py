@@ -551,6 +551,8 @@ class SnakeGame:
         return img
 
     def render_game(self, img):
+        if img is None: return None
+
         mat = ar.homography(img, CORNERS_REF)
         if mat is None: return img
 

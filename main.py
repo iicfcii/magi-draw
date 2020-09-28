@@ -90,12 +90,12 @@ class SnakeView:
 
     def update(self):
         if self.frame.winfo_ismapped():
-            frame = self.game.update(self.vid.get_frame(), self.key_manager.get())
+            img = self.game.update(self.vid.get_frame(), self.key_manager.get())
             self.key_manager.set(None)
 
             # Draw on canvas
-            if frame is not None:
-                self.img = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+            if img is not None:
+                self.img = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)))
                 self.canvas.create_image(0, 0, image=self.img, anchor=NW)
         else:
             self.game.reset()
@@ -117,7 +117,9 @@ class KeyManager:
 
 class VideoCapture:
     def __init__(self, width, height):
-        self.vid = cv2.VideoCapture(0)
+        # self.vid = cv2.VideoCapture(0)
+        self.vid = cv2.VideoCapture('img/snake_game_video_4.MOV')
+
         assert self.vid.isOpened()
 
         self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, GAME_VIEW_WIDTH)
