@@ -335,9 +335,9 @@ class Animator:
         self.weights = calcWeights(self.bones, self.triangles)
         t_weights = time.time()-t_start-t_constrain
 
-        print('Triangulation', t_tri)
-        print('Constrained Triangulation', t_constrain)
-        print('Weights', t_weights)
+        # print('Triangulation', t_tri)
+        # print('Constrained Triangulation', t_constrain)
+        # print('Weights', t_weights)
 
         self.current_frame = None
 

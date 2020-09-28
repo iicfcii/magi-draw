@@ -111,6 +111,9 @@ def contour(img_gray):
     # cv2.destroyAllWindows()
 
     contours, hierarchy = cv2.findContours(img_dialate,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+
+    assert len(contours) > 0
+
     if len(contours) != 1:
         # Only take the one with biggest area
         area_max = 0
@@ -123,7 +126,6 @@ def contour(img_gray):
 
         contours = [contours[index_max]]
 
-    assert len(contours) == 1
     contour = cv2.approxPolyDP(contours[0],1,True).reshape((-1,2)).astype(np.int32)
 
     # Add points to controur

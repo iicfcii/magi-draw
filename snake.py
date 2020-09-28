@@ -333,7 +333,7 @@ class FoodAnimator(animation.Animator):
         t_start = time.time()
         self.rotate = self.generate_animation(food_bones_frames(FOOD_ROTATE_PARAMS))
         t_generate = time.time()-t_start
-        print('Animation', t_generate)
+        # print('Animation', t_generate)
 
     def update(self):
         self.current_frame = self.rotate.frame()
@@ -351,7 +351,7 @@ class SnakeAnimator(animation.Animator):
         self.turn_right = self.generate_animation(bones_frames(TURN_RIGHT_PARAMS))
         self.eat = self.generate_animation(bones_frames(EAT_PARAMS))
         t_generate = time.time()-t_start
-        print('Animation', t_generate)
+        # print('Animation', t_generate)
 
     def update(self):
         if self.snake_model.v > 0:
@@ -493,8 +493,8 @@ class FoodModel:
 
 class SnakeGame:
     def __init__(self):
-        self.snake_model = SnakeModel()
-        self.food_models = FoodModels()
+        self.snake_model = None
+        self.food_models = None
 
         self.snake_animator = None
         self.food_animator = None
@@ -505,8 +505,8 @@ class SnakeGame:
     def reset(self):
         self.state = 'SCAN'
 
-    def set_animator(self, img):
-        if self.state != 'SCAN': return False
+    def init_game(self, img):
+        # if self.state != 'SCAN': return False
 
         if img is None: return False
 
@@ -518,25 +518,37 @@ class SnakeGame:
 
         img_food_drawing = ar.drawing(img, mat, FOOD_DRAW_REF)
 
-        def init_animator():
-            self.snake_animator = SnakeAnimator(img_snake_drawing, self.snake_model, bones(DEFAULT_PARAMS))
-            self.food_animator = FoodAnimator(img_food_drawing, self.snake_model, food_bones(FOOD_DEFAULT_PARAMS))
-            self.state = 'GAME'
+        def init():
+            try:
+                self.snake_model = SnakeModel()
+                self.food_models = FoodModels()
+
+                self.snake_animator = SnakeAnimator(img_snake_drawing, self.snake_model, bones(DEFAULT_PARAMS))
+                self.food_animator = FoodAnimator(img_food_drawing, self.snake_model, food_bones(FOOD_DEFAULT_PARAMS))
+                self.state = 'GAME'
+            except:
+                self.state = 'RETRY'
 
         self.state = 'PROCESS'
-        t = threading.Thread(target=init_animator)
+        t = threading.Thread(target=init)
         t.start()
 
         return True
 
-    def render_scan(self, img):
+    def render_scan(self, img, retry=False):
         if img is None: return None
 
         mat = ar.homography(img, CORNERS_REF)
         if mat is not None:
             img = ar.render_lines(img, SNAKE_DRAW_REF.reshape((-1,1,2)), mat, color=PINK_COLOR, thickness=2)
             img = ar.render_lines(img, FOOD_DRAW_REF.reshape((-1,1,2)), mat, color=PINK_COLOR, thickness=2)
-            img = ar.render_text(img, 'Press any key to start.', INFO_REF, mat, fontScale=2, thickness=3, color=PINK_COLOR)
+
+            if not retry:
+                str = 'Press any key to start.'
+            else:
+                str = 'Press any key to retry.'
+            img = ar.render_text(img, str, INFO_REF, mat, fontScale=2, thickness=3, color=PINK_COLOR)
+
             return img
 
         return img
@@ -580,11 +592,11 @@ class SnakeGame:
         return img_render
 
     def update(self, img, key):
-        if self.state == 'SCAN':
+        if self.state == 'SCAN' or self.state == 'RETRY':
             if key is not None:
-                self.set_animator(img)
+                self.init_game(img)
 
-            return self.render_scan(img)
+            return self.render_scan(img, retry=self.state == 'RETRY')
 
         if self.state == 'PROCESS':
             return self.render_process(img)

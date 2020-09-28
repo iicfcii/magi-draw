@@ -22,7 +22,6 @@ class App:
 
         self.vid = VideoCapture(GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT)
 
-
         self.home_view = HomeView(self.window)
         self.snake_view = SnakeView(self.window, self.vid, self.key_manager)
         self.menu_view = MenuView(self.window, self.show_view, self.key_manager)
@@ -47,9 +46,9 @@ class MenuView:
         self.frame = Frame(window)
         self.frame.pack(side=BOTTOM)
 
-        self.home_button = Button(self.frame, text="HOME", command=self.show_home)
+        self.home_button = Button(self.frame, text="Home", font= ('Arial', '12'), command=self.show_home)
         self.home_button.pack(padx=5, pady=5, side=LEFT)
-        self.snake_button = Button(self.frame, text="SNAKE GAME", command=self.show_snake)
+        self.snake_button = Button(self.frame, text="Snake", font= ('Arial', '12'), command=self.show_snake)
         self.snake_button.pack(padx=5, pady=5, side=LEFT)
 
         self.show_view = show_view
@@ -70,7 +69,10 @@ class HomeView:
         self.canvas = Canvas(self.frame, width=GAME_VIEW_WIDTH, height=GAME_VIEW_HEIGHT)
         self.canvas.pack(side=BOTTOM)
 
-        self.canvas.create_text((GAME_VIEW_WIDTH/2,GAME_VIEW_HEIGHT/2), text='Welcome to Orimagi Draw Demo!')
+        self.canvas.create_text((GAME_VIEW_WIDTH/2,GAME_VIEW_HEIGHT/2),
+                                text='Welcome to MagiDraw!',
+                                justify=CENTER,
+                                font= ('Arial', '32'))
 
 class SnakeView:
     def __init__(self, window, vid, key_manager):
@@ -117,8 +119,8 @@ class KeyManager:
 
 class VideoCapture:
     def __init__(self, width, height):
-        # self.vid = cv2.VideoCapture(0)
-        self.vid = cv2.VideoCapture('img/snake_game_video_4.MOV')
+        self.vid = cv2.VideoCapture(0)
+        # self.vid = cv2.VideoCapture('img/snake_game_video_4.MOV')
 
         assert self.vid.isOpened()
 
@@ -145,4 +147,5 @@ class VideoCapture:
         if self.vid.isOpened():
             self.vid.release()
 
-App()
+if __name__ == '__main__':
+    App()
