@@ -1,9 +1,13 @@
+import sys
+sys.path.append(sys.path[0] + "/..")
 import numpy as np
 import cv2
-import triangulation
-import animation
-import snake
-import ar
+
+import animator.ar as ar
+
+from snake.snake_bones import *
+from snake.food_animator import *
+from snake.food_models import *
 
 # Photo of scene
 img = cv2.imread('img/snake_game_3.jpg')
@@ -11,15 +15,12 @@ img = cv2.imread('img/snake_game_3.jpg')
 # cv2.waitKey(0)
 
 # Get drawing
-mat = ar.homography(img, snake.CORNERS_REF)
-img_drawing = ar.drawing(img, mat, snake.FOOD_DRAW_REF)
+mat = ar.homography(img, CORNERS_REF)
+img_drawing = ar.drawing(img, mat, FOOD_DRAW_REF)
 # cv2.imshow('Drawing', img_drawing)
 # cv2.waitKey(0)
-    {
-        'bottom': {'x': 100, 'y': 150, 'theta': -90},
-        'bottom_top': {'theta': 0, 'l': 100},
-    },
-animator = snake.FoodAnimator(img_drawing, snake.SnakeModel(), snake.food_bones(snake.FOOD_DEFAULT_PARAMS))
+
+animator = FoodAnimator(img_drawing, FoodModels(), food_bones(FOOD_DEFAULT_PARAMS))
 
 img_tmp = animator.drawing.copy()
 for triangle in animator.triangles:
@@ -45,7 +46,7 @@ cv2.waitKey(0)
 for frame in animator.rotate.frames:
     img_frame, anchor_frame, mask_frame = frame
     # Make anchor point fixed
-    position = (int(snake.BOARD_REF[0,0]),int(snake.BOARD_REF[0,1]))
+    position = (int(BOARD_REF[0,0]),int(BOARD_REF[0,1]))
 
     frame_tmp = ar.render(img.copy(), img_frame, mask_frame, position, mat)
     cv2.imshow('Frame',frame_tmp)

@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
-import animation
+
+import animator.animation as animation
 
 DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 PARA = cv2.aruco.DetectorParameters_create()

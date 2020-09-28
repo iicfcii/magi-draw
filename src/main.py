@@ -1,12 +1,8 @@
 from tkinter import *
 import cv2
 import PIL.Image, PIL.ImageTk
-import numpy as np
 
-import ar
-import triangulation
-import animation
-import snake
+from snake.snake_game import SnakeGame
 
 GAME_VIEW_WIDTH = 1280
 GAME_VIEW_HEIGHT = 720
@@ -102,7 +98,7 @@ class SnakeView:
         self.canvas = Canvas(self.frame, width=GAME_VIEW_WIDTH, height=GAME_VIEW_HEIGHT)
         self.canvas.pack(side=TOP)
 
-        self.game = snake.SnakeGame()
+        self.game = SnakeGame()
 
         self.update()
 
