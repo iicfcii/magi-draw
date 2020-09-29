@@ -101,8 +101,8 @@ def contour(img_gray):
     # Threshold
     img_bin = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 151, 10)
     # Offset contour and close holes
-    img_close = cv2.morphologyEx(img_bin, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)))
-    img_dialate = cv2.dilate(img_close,cv2.getStructuringElement(cv2.MORPH_RECT,(7,7)))
+    img_close = cv2.morphologyEx(img_bin, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)), borderValue=0)
+    img_dialate = cv2.morphologyEx(img_close, cv2.MORPH_DILATE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)), borderValue=0)
 
     # cv2.imshow('bin',img_bin)
     # cv2.imshow('close',img_close)
