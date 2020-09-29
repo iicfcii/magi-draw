@@ -1,0 +1,7 @@
+name: test
+dependencies:
+  - python=3.8.5
+  - pip:
+    - opencv-contrib-python
+    - pyinstaller
+    - Pillow
