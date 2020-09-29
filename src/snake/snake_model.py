@@ -30,10 +30,10 @@ class SnakeModel:
             self.x = self.RECT[0]
 
     def move(self, key):
-        if self.v == 0:
-            if key == 65: # a
+        if self.v == 0 and key is not None:
+            if key[0] == 65 or key[1] == 'a': # a
                 self.v = -self.SPEED
-            if key == 68: # d
+            if key[0] == 68 or key[1] == 'd': # d
                 self.v = self.SPEED
 
     def constrain(self, frame):
