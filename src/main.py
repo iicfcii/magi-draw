@@ -47,17 +47,17 @@ class MenuView:
         self.snake_button = Button(self.frame, text="Snake", font=('Arial', '12'), command=self.show_snake)
         self.snake_button.pack(padx=5, pady=5, side=LEFT)
 
-
-        self.vid_id = IntVar(self.frame)
         if len(self.vid.available) > 0:
+            self.vid_id = IntVar(self.frame)
             self.vid_id.set(self.vid.available[0])
             self.vid.start(self.vid.available[0])
+            self.options = OptionMenu(self.frame, self.vid_id, *self.vid.available, command=self.on_vid_change)
+            self.options.pack(side=RIGHT)
+            msg = "Set video device"
         else:
-            self.vid_id.set(-1)
-        self.options = OptionMenu(self.frame, self.vid_id, *self.vid.available, command=self.on_vid_change)
-        self.options.pack(side=RIGHT)
+            msg = "No video device"
 
-        self.label = Label(self.frame, text="Set video device", font=('Arial', '12'))
+        self.label = Label(self.frame, text=msg, font=('Arial', '12'))
         self.label.pack(side=RIGHT)
 
         self.show_view = show_view
@@ -121,10 +121,11 @@ class KeyManager:
         self.keycode = None
 
     def set(self, event):
+        # print(event.keysym)
         if event is None:
             self.keycode = None
         else:
-            self.keycode = event.keycode
+            self.keycode = (event.keycode, event.keysym)
 
     def get(self):
         return self.keycode
@@ -135,7 +136,7 @@ class VideoCapture:
 
         self.available = []
         for i in range(5):
-            vid = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+            vid = cv2.VideoCapture(i)
             if vid.isOpened():
                 self.available.append(i)
                 vid.release()
@@ -146,7 +147,7 @@ class VideoCapture:
         if self.vid is not None and self.vid.isOpened():
              self.vid.release()
 
-        self.vid = cv2.VideoCapture(id, cv2.CAP_DSHOW)
+        self.vid = cv2.VideoCapture(id)
         self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, GAME_VIEW_WIDTH)
         self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, GAME_VIEW_HEIGHT)
 
