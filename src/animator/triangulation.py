@@ -97,7 +97,7 @@ def swap_diagonal(edge, match, triangles):
 
     return edge_new
 
-def contour(img_gray):
+def find_contour(img_gray):
     # Threshold
     img_bin = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 151, 10)
     # Offset contour and close holes

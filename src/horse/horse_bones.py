@@ -114,6 +114,7 @@ def params2bones(params):
     p_front_foot_world = (T_bottom2w @ T_shoulder2bottom @ T_front_foot2shoulder @ origin)[0:2].reshape(2)
     p_tail_world = (T_bottom2w @ T_shoulder2bottom @ T_bottom_wrt_shoulder2shoulder @ T_tail2bottom_wrt_shoulder @ origin)[0:2].reshape(2)
 
+    # Bones with larger index apear in the front
     bones = np.array([
         [p_bottom_world, p_shoulder_world], # bottom_shoulder
         [p_shoulder_world, p_head_world], # shoulder_head

@@ -140,6 +140,27 @@ def calcWeights(bones_default, triangles):
 
     return weights
 
+# Return sorted triangles according to which bone each triangle belongs to
+def sortTriangles(triangles, weights):
+    relations = []
+
+    for triangle in triangles:
+        w_sum = None
+        for point in triangle:
+            point_key = tuple(point)
+            w = weights[point_key]['weight']
+
+            if w_sum is None:
+                w_sum = w
+            else:
+                w_sum = w_sum + w
+         # index of max w indicates which bone this triangle belongs to
+        relations.append((triangle, np.argmax(w_sum)))
+
+    relations.sort(key=lambda r:r[1])
+
+    return [r[0] for r in relations], [r[1] for r in relations]
+
 def findPath(start, bone, triangles):
     start_key = tuple(start)
     next = [start_key] # sort by f, lowest index is 0

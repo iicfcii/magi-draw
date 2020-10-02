@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 
 import animator.ar as ar
+import animator.animation as animation
 
 from horse.horse_bones import *
 from horse.horse_animator import *
@@ -33,8 +34,8 @@ animator = HorseAnimator(img_drawing, None, params2bones(DEFAULT_PARAMS))
 # img_tmp = animator.drawing.copy()
 # for triangle in animator.triangles:
 #     cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
-# cv2.imshow('Triangulation', img_tmp)
-# cv2.waitKey(0)
+#     cv2.imshow('Triangulation', img_tmp)
+#     cv2.waitKey(10)
 
 for i in range(len(animator.bones)):
     img_tmp = animator.drawing.copy()
@@ -46,12 +47,8 @@ for i in range(len(animator.bones)):
         cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
         cv2.circle(img_tmp, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)
     for point_key in animator.weights.keys():
-        if np.argmax(animator.weights[point_key]['weight']) == i:
-            size = 3
-        else:
-            size = 1
         val = 255*animator.weights[point_key]['weight'][i]
-        cv2.circle(img_tmp, point_key, size, (0,val,0), thickness=-1)
+        cv2.circle(img_tmp, point_key, 2, (0,val,0), thickness=-1)
     cv2.imshow('Weights' + str(i),img_tmp)
 cv2.waitKey(0)
 
