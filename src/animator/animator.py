@@ -48,7 +48,7 @@ class Animator:
     def update(self):
         pass
 
-    def generate_animation(self, bones_frames):
+    def generate_animation(self, bones_frames, hide=[]):
         frames = []
 
         for i in range(len(bones_frames)):
@@ -64,8 +64,7 @@ class Animator:
             else:
                 bones_n = bones_frames[i]
                 triangles_next = animate(self.bones,bones_n,self.triangles,self.weights)
-                img_n, anchor, mask_img_n = warp(self.drawing, self.triangles, triangles_next, bones_n[0])
-
+                img_n, anchor, mask_img_n = warp(self.drawing, self.triangles, triangles_next, bones_n[0], self.relations, hide=hide)
 
                 img_n = cv2.resize(img_n, None, fx=self.ratio, fy=self.ratio)
                 anchor = anchor*self.ratio

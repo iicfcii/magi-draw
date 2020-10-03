@@ -51,7 +51,7 @@ DEFAULT_PARAMS = {
     'bottom_wrt_shoulder_tail': {'theta': 150, 'l': 40},
 }
 
-TEST_PARAMS = [
+RUN_PARAMS = [
     DEFAULT_PARAMS,
     {
         'bottom': {'x': 50, 'y': 70, 'theta': 0},
@@ -59,8 +59,8 @@ TEST_PARAMS = [
         'shoulder_head': {'theta': -30, 'l': 50},
         'head_nose': {'theta': 60, 'l': 25},
         'bottom_wrt_shoulder': {'x': -80, 'y': 0, 'theta': 0},
-        'bottom_wrt_shoulder_rear_foot': {'theta': 130, 'l': 60},
-        'shoulder_front_foot': {'theta': 50, 'l': 60},
+        'bottom_wrt_shoulder_rear_foot': {'theta': 110, 'l': 60},
+        'shoulder_front_foot': {'theta': 70, 'l': 60},
         'bottom_wrt_shoulder_tail': {'theta': 210, 'l': 40},
     },
     DEFAULT_PARAMS,
@@ -70,9 +70,34 @@ TEST_PARAMS = [
         'shoulder_head': {'theta': -30, 'l': 50},
         'head_nose': {'theta': 60, 'l': 25},
         'bottom_wrt_shoulder': {'x': -80, 'y': 0, 'theta': 0},
-        'bottom_wrt_shoulder_rear_foot': {'theta': 50, 'l': 60},
-        'shoulder_front_foot': {'theta': 130, 'l': 60},
+        'bottom_wrt_shoulder_rear_foot': {'theta': 70, 'l': 60},
+        'shoulder_front_foot': {'theta': 110, 'l': 60},
         'bottom_wrt_shoulder_tail': {'theta': 120, 'l': 40},
+    },
+]
+
+RUN_ALT_PARAMS = [
+    DEFAULT_PARAMS,
+    {
+        'bottom': {'x': 50, 'y': 70, 'theta': 0},
+        'bottom_shoulder': {'theta': 0, 'l': 80}, # Main bone
+        'shoulder_head': {'theta': -30, 'l': 50},
+        'head_nose': {'theta': 60, 'l': 25},
+        'bottom_wrt_shoulder': {'x': -80, 'y': 0, 'theta': 0},
+        'bottom_wrt_shoulder_rear_foot': {'theta': 70, 'l': 60},
+        'shoulder_front_foot': {'theta': 110, 'l': 60},
+        'bottom_wrt_shoulder_tail': {'theta': 120, 'l': 40},
+    },
+    DEFAULT_PARAMS,
+    {
+        'bottom': {'x': 50, 'y': 70, 'theta': 0},
+        'bottom_shoulder': {'theta': 0, 'l': 80}, # Main bone
+        'shoulder_head': {'theta': -30, 'l': 50},
+        'head_nose': {'theta': 60, 'l': 25},
+        'bottom_wrt_shoulder': {'x': -80, 'y': 0, 'theta': 0},
+        'bottom_wrt_shoulder_rear_foot': {'theta': 110, 'l': 60},
+        'shoulder_front_foot': {'theta': 70, 'l': 60},
+        'bottom_wrt_shoulder_tail': {'theta': 210, 'l': 40},
     },
 ]
 

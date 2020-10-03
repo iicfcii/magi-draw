@@ -52,14 +52,15 @@ for i in range(len(animator.bones)):
     cv2.imshow('Weights' + str(i),img_tmp)
 cv2.waitKey(0)
 
-while True:
-    for frame in animator.test.frames:
-        img_frame, anchor_frame, mask_frame = frame
-        # Make anchor point fixed
-        position = (int(BOARD_REF[0,0]),int(BOARD_REF[0,1]))
 
-        frame_tmp = ar.render(img.copy(), img_frame, mask_frame, position, mat)
-        cv2.imshow('Frame',frame_tmp)
-        cv2.waitKey(0)
+while True:
+    animator.update()
+    img_frame, anchor_frame, mask_frame = animator.current_frame
+    # Make anchor point fixed
+    position = (int(BOARD_REF[0,0]-anchor_frame[0]+100),int(BOARD_REF[0,1]-anchor_frame[1]+100))
+
+    frame_tmp = ar.render(img.copy(), img_frame, mask_frame, position, mat)
+    cv2.imshow('Frame',frame_tmp)
+    cv2.waitKey(0)
 
 cv2.destroyAllWindows()

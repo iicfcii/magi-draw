@@ -263,7 +263,7 @@ def animate(bones_default, bones_n, triangles, weights):
 
     return triangles_n
 
-def warp(img, triangles, triangles_next, bone):
+def warp(img, triangles, triangles_next, bone, relations, hide=[]):
     rect_n = cv2.boundingRect(np.concatenate(triangles_next,axis=0)) # x, y, w, h
     img_n = np.zeros((rect_n[3],rect_n[2],3), np.uint8)
     mask_img_n = np.zeros((rect_n[3],rect_n[2],1), np.uint8)
@@ -273,7 +273,9 @@ def warp(img, triangles, triangles_next, bone):
     anchor = np.array([bone[0]-rect_n[0],bone[1]-rect_n[1]],dtype=np.int32)
 
     rect_offset = 5 # Offset bounding rectangle so won't pick black pixle
-    for triangle_c, triangle_n in zip(triangles, triangles_next):
+    for i, triangle_c, triangle_n in zip(range(len(triangles)), triangles, triangles_next):
+        if relations[i] in hide: continue # Skip triangles that show be hidden based on their bones
+
         # Get signle bounding rectangle for current and next
         # Take out of image into account
         (x,y,w,h) = cv2.boundingRect(np.concatenate((triangle_c,triangle_n),axis=0))
@@ -317,6 +319,47 @@ def warp(img, triangles, triangles_next, bone):
         mask_img_n[indices_offset] = 255
 
     # Erode so that no background pixles are shown
+    # NOTE: mask is smaller than the black area of the image
     mask_img_n = cv2.erode(mask_img_n,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)), borderType=cv2.BORDER_CONSTANT, borderValue=0)
 
     return (img_n, anchor, mask_img_n)
+
+def merge_frames(front, back):
+    img, anchor, mask = front
+    img_alt, anchor_alt, mask_alt = back
+
+    # Coordinates of four corners of two images based on anchor
+    pts = np.array([
+        [-anchor[0],-anchor[1]],
+        [-anchor[0]+img.shape[1]-1,-anchor[1]+img.shape[0]-1],
+        [-anchor_alt[0],-anchor_alt[1]],
+        [-anchor_alt[0]+img_alt.shape[1]-1,-anchor_alt[1]+img_alt.shape[0]-1]
+    ], dtype=np.int32)
+    # Bounding rect based on anchor
+    rect = cv2.boundingRect(pts)
+
+    # Coordinates of two images in the new bounding rect
+    anchor_new = (-rect[0],-rect[1])
+    p_new = (pts[0,0]+anchor_new[0],pts[0,1]+anchor_new[1]) # top left corner
+    p_alt_new = (pts[2,0]+anchor_new[0],pts[2,1]+anchor_new[1])
+    w_new, h_new = rect[2:4]
+
+    # Dialte the mask so that when masked, no black border will be shown
+    mask_dilated = cv2.dilate(mask,cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)), borderValue=0)
+
+    # Apply back image first then front image with dilated mask
+    img_new = np.zeros((h_new,w_new,3), np.uint8)
+    img_new[p_alt_new[1]:p_alt_new[1]+img_alt.shape[0],p_alt_new[0]:p_alt_new[0]+img_alt.shape[1]] = img_alt
+    img_new[p_new[1]:p_new[1]+img.shape[0],p_new[0]:p_new[0]+img.shape[1]][mask_dilated > 0] = img[mask_dilated > 0]
+
+    # Similar process but with just mask
+    mask_new = np.zeros((h_new,w_new), np.uint8)
+    mask_new[p_alt_new[1]:p_alt_new[1]+mask_alt.shape[0],p_alt_new[0]:p_alt_new[0]+mask_alt.shape[1]] = mask_alt
+    mask_new[p_new[1]:p_new[1]+mask.shape[0],p_new[0]:p_new[0]+mask.shape[1]][mask > 0] = mask[mask > 0]
+
+    # cv2.circle(img_new, anchor_new, 5, (255,0,0), thickness=-1)
+    # cv2.imshow('Img',img_new)
+    # cv2.imshow('Mask',mask_new)
+    # cv2.waitKey(0)
+
+    return img_new, anchor_new, mask_new
