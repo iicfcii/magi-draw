@@ -56,35 +56,70 @@ DEFAULT_PARAMS = {
     'breast_belly': {'theta': 180, 'l': 50},
 }
 
-RUN_RIGHT_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
-# RUN_RIGHT_PARAMS['hip']['x'] = -70
-RUN_RIGHT_PARAMS['hip_rear_foot']['theta'] = 60
-# RUN_RIGHT_PARAMS['shoulder']['x'] = 10
-RUN_RIGHT_PARAMS['shoulder_front_foot']['theta'] = 60
-RUN_RIGHT_PARAMS['bottom_tail']['theta'] = 180
-RUN_RIGHT_PARAMS['neck_head']['theta'] = -40
+WALK_RIGHT_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+WALK_RIGHT_PARAMS['hip_rear_foot']['theta'] = 60
+WALK_RIGHT_PARAMS['shoulder_front_foot']['theta'] = 60
+WALK_RIGHT_PARAMS['bottom_tail']['theta'] = 180
+WALK_RIGHT_PARAMS['neck_head']['theta'] = -40
+WALK_RIGHT_PARAMS['head_nose']['theta'] = 30
 
-RUN_LEFT_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
-# RUN_LEFT_PARAMS['hip']['x'] = -90
-RUN_LEFT_PARAMS['hip_rear_foot']['theta'] = 120
-# RUN_LEFT_PARAMS['shoulder']['x'] = -10
-RUN_LEFT_PARAMS['shoulder_front_foot']['theta'] = 120
-RUN_LEFT_PARAMS['bottom_tail']['theta'] = 180
-RUN_LEFT_PARAMS['neck_head']['theta'] = -40
+WALK_LEFT_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+WALK_LEFT_PARAMS['hip_rear_foot']['theta'] = 120
+WALK_LEFT_PARAMS['shoulder_front_foot']['theta'] = 120
+WALK_LEFT_PARAMS['bottom_tail']['theta'] = 180
+WALK_LEFT_PARAMS['neck_head']['theta'] = -40
+WALK_LEFT_PARAMS['head_nose']['theta'] = 30
+
+WALK_FRONT_PARAMS = [
+    DEFAULT_PARAMS,
+    WALK_RIGHT_PARAMS,
+    DEFAULT_PARAMS,
+    WALK_LEFT_PARAMS,
+]
+
+WALK_BACK_PARAMS = [
+    DEFAULT_PARAMS,
+    WALK_LEFT_PARAMS,
+    DEFAULT_PARAMS,
+    WALK_RIGHT_PARAMS,
+]
+
+RUN_1_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+RUN_1_PARAMS['hip_rear_foot']['theta'] = 45
+RUN_1_PARAMS['shoulder_front_foot']['theta'] = 120
+
+RUN_2_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+RUN_2_PARAMS['hip_rear_foot']['theta'] = 120
+RUN_2_PARAMS['shoulder_front_foot']['theta'] = 45
+
+RUN_3_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+RUN_3_PARAMS['hip_rear_foot']['theta'] = 90
+RUN_3_PARAMS['shoulder_front_foot']['theta'] = 90
+
+RUN_1_BACK_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+RUN_1_BACK_PARAMS['hip_rear_foot']['theta'] = 60
+RUN_1_BACK_PARAMS['shoulder_front_foot']['theta'] = 135
+
+RUN_2_BACK_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+RUN_2_BACK_PARAMS['hip_rear_foot']['theta'] = 135
+RUN_2_BACK_PARAMS['shoulder_front_foot']['theta'] = 60
+
+RUN_3_BACK_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+RUN_3_BACK_PARAMS['hip_rear_foot']['theta'] = 90
+RUN_3_BACK_PARAMS['shoulder_front_foot']['theta'] = 90
 
 RUN_FRONT_PARAMS = [
-    DEFAULT_PARAMS,
-    RUN_RIGHT_PARAMS,
-    DEFAULT_PARAMS,
-    RUN_LEFT_PARAMS,
+    RUN_1_PARAMS,
+    RUN_2_PARAMS,
+    RUN_3_PARAMS,
 ]
 
 RUN_BACK_PARAMS = [
-    DEFAULT_PARAMS,
-    RUN_LEFT_PARAMS,
-    DEFAULT_PARAMS,
-    RUN_RIGHT_PARAMS,
+    RUN_1_BACK_PARAMS,
+    RUN_2_BACK_PARAMS,
+    RUN_3_BACK_PARAMS,
 ]
+
 
 def params2bones(params):
     origin = [[0],[0],[1]] # Origin of each coordinate system

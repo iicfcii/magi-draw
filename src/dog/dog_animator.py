@@ -12,12 +12,18 @@ class DogAnimator(Animator):
 
         # Generate custom animation
         t_start = time.time()
-        self.walk_front = self.generate_animation(params2frames(RUN_FRONT_PARAMS))
-        self.walk_back = self.generate_animation(params2frames(RUN_BACK_PARAMS), hide=[0,1,2,5])
+        self.walk_front = self.generate_animation(params2frames(WALK_FRONT_PARAMS))
+        self.walk_back = self.generate_animation(params2frames(WALK_BACK_PARAMS), hide=[0,1,2,5])
+        self.run_front = self.generate_animation(params2frames(RUN_FRONT_PARAMS))
+        self.run_back = self.generate_animation(params2frames(RUN_BACK_PARAMS), hide=[0,1,2,5])
         t_generate = time.time()-t_start
         # print('Animation', t_generate)
 
     def update(self):
-        self.current_frame = merge_frames(self.walk_front.frame(), self.walk_back.frame())
-        self.walk_front.update()
-        self.walk_back.update()
+        # self.current_frame = merge_frames(self.walk_front.frame(), self.walk_back.frame())
+        # self.walk_front.update()
+        # self.walk_back.update()
+
+        self.current_frame = merge_frames(self.run_front.frame(), self.run_back.frame())
+        self.run_front.update()
+        self.run_back.update()

@@ -10,7 +10,7 @@ from dog.dog_bones import *
 from dog.dog_animator import *
 
 # Photo of scene
-img = cv2.imread('img/dog_game_1.jpg')
+img = cv2.imread('img/dog_game_3.jpg')
 # cv2.imshow('Source', img)
 # cv2.waitKey(0)
 
@@ -56,7 +56,7 @@ while True:
     animator.update()
     img_frame, anchor_frame, mask_frame = animator.current_frame
     # Make anchor point fixed
-    position = (int(BOARD_REF[0,0]-anchor_frame[0]+100),int(BOARD_REF[0,1]-anchor_frame[1]+100))
+    position = (int(BOARD_REF[0,0]-anchor_frame[0]+200),int(BOARD_REF[0,1]-anchor_frame[1]+100))
 
     frame_tmp = ar.render(img.copy(), img_frame, mask_frame, position, mat)
     cv2.imshow('Frame',frame_tmp)

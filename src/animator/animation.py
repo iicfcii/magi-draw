@@ -120,7 +120,7 @@ def calcWeight(p, bone, triangles):
     for i in range(1,len(path)):
         d = d + calcPointPointDistance(path[i-1,:],path[i,:])
     d = d + calcPointLineDistance(path[-1,:], bone[0:2], bone[2:4])
-    weight = np.exp(-0.02*d) # w =e^(-Cd)
+    weight = np.exp(-0.03*d) # w =e^(-Cd)
 
     return weight
 
