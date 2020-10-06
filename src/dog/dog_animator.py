@@ -16,6 +16,9 @@ class DogAnimator(Animator):
         self.walk_back = self.generate_animation(params2frames(WALK_BACK_PARAMS), hide=[0,1,2,5])
         self.run_front = self.generate_animation(params2frames(RUN_FRONT_PARAMS))
         self.run_back = self.generate_animation(params2frames(RUN_BACK_PARAMS), hide=[0,1,2,5])
+
+        self.rest = self.generate_animation(params2frames(REST_PARAMS))
+
         t_generate = time.time()-t_start
         # print('Animation', t_generate)
 
@@ -24,6 +27,9 @@ class DogAnimator(Animator):
         # self.walk_front.update()
         # self.walk_back.update()
 
-        self.current_frame = merge_frames(self.run_front.frame(), self.run_back.frame())
-        self.run_front.update()
-        self.run_back.update()
+        # self.current_frame = merge_frames(self.run_front.frame(), self.run_back.frame())
+        # self.run_front.update()
+        # self.run_back.update()
+
+        self.current_frame = self.rest.frame()
+        self.rest.update()

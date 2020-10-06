@@ -16,7 +16,7 @@ img = cv2.imread('img/dog_game_3.jpg')
 
 # Get drawing
 mat = ar.homography(img, CORNERS_REF)
-img_drawing = ar.drawing(img, mat, HORSE_DRAW_REF)
+img_drawing = ar.drawing(img, mat, DOG_DRAW_REF)
 # cv2.imshow('Drawing', img_drawing)
 # cv2.waitKey(0)
 
@@ -43,6 +43,7 @@ for i in range(len(animator.bones)):
         cv2.polylines(img_tmp, [triangle.astype(np.int32)], True, (0,0,255))
     for bone in animator.bones:
         bone = bone.astype(np.int32)
+
         cv2.polylines(img_tmp, [bone.reshape((2,2))], True, (255,0,0), 2)
         cv2.circle(img_tmp, tuple(bone[0:2]), 5, (0,0,0), thickness=-1)
         cv2.circle(img_tmp, tuple(bone[2:4]), 5, (0,0,0), thickness=-1)

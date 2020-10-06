@@ -3,15 +3,18 @@ import copy
 
 from animator.bone import *
 
+PINK_COLOR = (131, 124, 237)
+GREEN_COLOR = (88, 206, 169)
+
 # Adjust ratio to use full resolution of the drawing
 RATIO = 2.0
 
 MARKER_SIZE = 140*RATIO
 BOARD_WIDTH = 650*RATIO
 BOARD_HEIGHT = 250*RATIO
-HORSE_DRAW_LEFT = 290*RATIO
-HORSE_DRAW_WIDTH = 200*RATIO
-HORSE_DRAW_HEIGHT = 140*RATIO
+DOG_DRAW_LEFT = 290*RATIO
+DOG_DRAW_WIDTH = 200*RATIO
+DOG_DRAW_HEIGHT = 140*RATIO
 
 CORNERS_REF = {
     7: np.array([[0,0],
@@ -35,10 +38,10 @@ BOARD_REF = np.array([[0,MARKER_SIZE],
                       [BOARD_WIDTH,MARKER_SIZE],
                       [BOARD_WIDTH,BOARD_HEIGHT+MARKER_SIZE],
                       [0,BOARD_HEIGHT+MARKER_SIZE]])
-HORSE_DRAW_REF = np.array([[HORSE_DRAW_LEFT, 0],
-                           [HORSE_DRAW_LEFT+HORSE_DRAW_WIDTH, 0],
-                           [HORSE_DRAW_LEFT+HORSE_DRAW_WIDTH, HORSE_DRAW_HEIGHT],
-                           [HORSE_DRAW_LEFT, HORSE_DRAW_HEIGHT]])
+DOG_DRAW_REF = np.array([[DOG_DRAW_LEFT, 0],
+                         [DOG_DRAW_LEFT+DOG_DRAW_WIDTH, 0],
+                         [DOG_DRAW_LEFT+DOG_DRAW_WIDTH, DOG_DRAW_HEIGHT],
+                         [DOG_DRAW_LEFT, DOG_DRAW_HEIGHT]])
 INFO_REF = np.array([BOARD_REF[0,0]+20,BOARD_REF[0,1]+20])
 
 DEFAULT_PARAMS = {
@@ -60,15 +63,15 @@ WALK_RIGHT_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
 WALK_RIGHT_PARAMS['hip_rear_foot']['theta'] = 60
 WALK_RIGHT_PARAMS['shoulder_front_foot']['theta'] = 60
 WALK_RIGHT_PARAMS['bottom_tail']['theta'] = 180
-WALK_RIGHT_PARAMS['neck_head']['theta'] = -40
-WALK_RIGHT_PARAMS['head_nose']['theta'] = 30
+WALK_RIGHT_PARAMS['neck_head']['theta'] = -50
+WALK_RIGHT_PARAMS['head_nose']['theta'] = 50
 
 WALK_LEFT_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
 WALK_LEFT_PARAMS['hip_rear_foot']['theta'] = 120
 WALK_LEFT_PARAMS['shoulder_front_foot']['theta'] = 120
 WALK_LEFT_PARAMS['bottom_tail']['theta'] = 180
-WALK_LEFT_PARAMS['neck_head']['theta'] = -40
-WALK_LEFT_PARAMS['head_nose']['theta'] = 30
+WALK_LEFT_PARAMS['neck_head']['theta'] = -50
+WALK_LEFT_PARAMS['head_nose']['theta'] = 50
 
 WALK_FRONT_PARAMS = [
     DEFAULT_PARAMS,
@@ -85,14 +88,23 @@ WALK_BACK_PARAMS = [
 ]
 
 RUN_1_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+RUN_1_PARAMS['bottom_tail']['theta'] = 210
+RUN_1_PARAMS['neck_head']['theta'] = -30
+RUN_1_PARAMS['head_nose']['theta'] = 30
 RUN_1_PARAMS['hip_rear_foot']['theta'] = 45
 RUN_1_PARAMS['shoulder_front_foot']['theta'] = 120
 
 RUN_2_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+RUN_2_PARAMS['bottom_tail']['theta'] = 180
+RUN_2_PARAMS['neck_head']['theta'] = -60
+RUN_2_PARAMS['head_nose']['theta'] = 60
 RUN_2_PARAMS['hip_rear_foot']['theta'] = 120
 RUN_2_PARAMS['shoulder_front_foot']['theta'] = 45
 
 RUN_3_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+RUN_3_PARAMS['bottom_tail']['theta'] = 150
+RUN_3_PARAMS['neck_head']['theta'] = -45
+RUN_3_PARAMS['head_nose']['theta'] = 45
 RUN_3_PARAMS['hip_rear_foot']['theta'] = 90
 RUN_3_PARAMS['shoulder_front_foot']['theta'] = 90
 
@@ -118,6 +130,32 @@ RUN_BACK_PARAMS = [
     RUN_1_BACK_PARAMS,
     RUN_2_BACK_PARAMS,
     RUN_3_BACK_PARAMS,
+]
+
+REST_1_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+REST_1_PARAMS['breast']['y'] = 11
+REST_1_PARAMS['bottom_tail']['theta'] = 120
+
+REST_2_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+REST_2_PARAMS['breast']['y'] = 9
+REST_2_PARAMS['bottom_tail']['theta'] = 120
+REST_2_PARAMS['head_nose']['theta'] = 65
+
+REST_3_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+REST_3_PARAMS['breast']['y'] = 11
+REST_3_PARAMS['bottom_tail']['theta'] = 120
+REST_3_PARAMS['head_nose']['theta'] = 65
+
+REST_4_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+REST_4_PARAMS['breast']['y'] = 15
+REST_4_PARAMS['bottom_tail']['theta'] = 120
+REST_4_PARAMS['head_nose']['theta'] = 65
+
+REST_PARAMS = [
+    REST_1_PARAMS,
+    REST_2_PARAMS,
+    REST_3_PARAMS,
+    REST_4_PARAMS,
 ]
 
 
