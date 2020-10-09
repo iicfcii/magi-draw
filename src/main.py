@@ -12,7 +12,7 @@ GAME_VIEW_HEIGHT = 720
 class App:
     def __init__(self):
         self.window = Tk()
-        self.window.title('Orimagi Draw Demo')
+        self.window.title('MagiDraw Demo')
 
 
         self.key_manager = KeyManager()

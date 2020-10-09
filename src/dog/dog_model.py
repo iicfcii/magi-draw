@@ -78,7 +78,7 @@ class DogModel:
         # Find black circle
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # ret, img = cv2.threshold(img,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-        img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 301, 60)
+        img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 401, 60)
         img = cv2.morphologyEx(img, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT,(3,3)), borderValue=0, iterations=5)
         img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT,(3,3)), borderValue=0, iterations=5)
 
@@ -91,8 +91,8 @@ class DogModel:
             # img = cv2.rectangle(img, rect, 127)
             aspect_ratio = rect[2]/rect[3]
             # area = cv2.contourArea(contour)
-            if rect[2] > 30 and \
-               rect[3] > 30 and \
+            if rect[2] > 20 and \
+               rect[3] > 20 and \
                rect[2] < 100 and \
                rect[3] < 100 and \
                aspect_ratio < 2 and \
@@ -106,17 +106,16 @@ class DogModel:
             dist = []
             for i in range(0,len(rects)-1):
                 for j in range(i+1,len(rects)):
-                    center_i = (rects[i][0],rects[i][1])
-                    center_j = (rects[j][0],rects[j][1])
+                    center_i = (rects[i][0]+rects[i][2]/2,rects[i][1]+rects[i][3]/2)
+                    center_j = (rects[j][0]+rects[j][2]/2,rects[j][1]+rects[j][3]/2)
 
                     # Calculate actual distance based on rect size
-                    size_avg = (rects[i][2]+rects[i][2]+rects[j][3]+rects[j][3])/4 # Average width or height
+                    size_avg = (rects[i][2]+rects[i][3]+rects[j][2]+rects[j][3])/4 # Average width or height
 
                     # difference between actual distance and distance bewteen rects
-                    dist.append((np.absolute((center_i[0]-center_j[0])**2+(center_i[1]-center_j[1])**2-(size_avg*1.5)**2),i,j))
+                    dist.append((np.absolute((center_i[0]-center_j[0])**2+(center_i[1]-center_j[1])**2-(size_avg*1.5)**2),i,j,size_avg))
             dist.sort(key=lambda d:d[0])
-
-            if dist[0][0] < 8000:
+            if dist[0][0] < (dist[0][3]*1.5)**2:
                 rect_a = np.array(rects[dist[0][1]])
                 rect_b = np.array(rects[dist[0][2]])
                 rect = (rect_a+rect_b)/2
