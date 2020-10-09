@@ -23,13 +23,21 @@ class DogAnimator(Animator):
         # print('Animation', t_generate)
 
     def update(self):
-        # self.current_frame = merge_frames(self.walk_front.frame(), self.walk_back.frame())
-        # self.walk_front.update()
-        # self.walk_back.update()
+        if self.model.vx == 0:
+            if self.model.head_right:
+                self.current_frame = self.rest.frame()
+            else:
+                self.current_frame = flip_frame(self.rest.frame())
+            self.rest.update()
+        else:
+            frame = merge_frames(self.walk_front.frame(), self.walk_back.frame())
+            if self.model.head_right:
+                self.current_frame = frame
+            else:
+                self.current_frame = flip_frame(frame)
+            self.walk_front.update()
+            self.walk_back.update()
 
         # self.current_frame = merge_frames(self.run_front.frame(), self.run_back.frame())
         # self.run_front.update()
         # self.run_back.update()
-
-        self.current_frame = self.rest.frame()
-        self.rest.update()

@@ -8,9 +8,10 @@ import animator.animation as animation
 
 from dog.dog_bones import *
 from dog.dog_animator import *
+from dog.dog_model import *
 
 # Photo of scene
-img = cv2.imread('img/dog_game_3.jpg')
+img = cv2.imread('img/dog_game_1.jpg')
 # cv2.imshow('Source', img)
 # cv2.waitKey(0)
 
@@ -29,7 +30,7 @@ for bone in params2bones(DEFAULT_PARAMS):
 cv2.imshow('Default bones',img_tmp)
 cv2.waitKey(0)
 
-animator = DogAnimator(img_drawing, None, params2bones(DEFAULT_PARAMS))
+animator = DogAnimator(img_drawing, DogModel(), params2bones(DEFAULT_PARAMS))
 
 # img_tmp = animator.drawing.copy()
 # for triangle in animator.triangles:

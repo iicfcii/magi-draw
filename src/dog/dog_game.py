@@ -6,9 +6,11 @@ import animator.ar as ar
 
 from dog.dog_bones import *
 from dog.dog_animator import *
+from dog.dog_model import *
 
 class DogGame:
     def __init__(self):
+        self.dog_model = None
         self.dog_animator = None
 
         # SCAN, PROCESS, GAME
@@ -26,10 +28,11 @@ class DogGame:
 
         def init():
             try:
-                self.dog_animator = DogAnimator(img_dog_drawing, None, params2bones(DEFAULT_PARAMS))
+                self.dog_model = DogModel()
+                self.dog_animator = DogAnimator(img_dog_drawing, self.dog_model, params2bones(DEFAULT_PARAMS))
                 self.state = 'GAME'
             except Exception:
-                # traceback.print_exc()
+                traceback.print_exc()
                 self.state = 'RETRY'
 
 
@@ -65,10 +68,8 @@ class DogGame:
 
         return img
 
-    def render_game(self, img):
+    def render_game(self, img, mat):
         if img is None: return None
-
-        mat = ar.homography(img, CORNERS_REF)
         if mat is None: return img
 
         dog_frame = self.dog_animator.current_frame
@@ -77,7 +78,7 @@ class DogGame:
         dog_img = dog_frame[0]
         dog_anchor = dog_frame[1]
         dog_mask = dog_frame[2]
-        dog_position = (int(BOARD_REF[3,0]+100-dog_anchor[0]), int(BOARD_REF[3,1]-100-dog_anchor[1]))
+        dog_position = (int(self.dog_model.x-dog_anchor[0]), int(self.dog_model.y-dog_anchor[1]))
         img_render = ar.render(img, dog_img, dog_mask, dog_position, mat)
 
         return img_render
@@ -93,5 +94,9 @@ class DogGame:
             return self.render_process(img)
 
         if self.state == 'GAME':
+            mat = ar.homography(img, CORNERS_REF)
+
+            self.dog_model.move(img, mat)
+            self.dog_model.update()
             self.dog_animator.update()
-            return self.render_game(img)
+            return self.render_game(img, mat)

@@ -7,55 +7,61 @@ PINK_COLOR = (131, 124, 237)
 GREEN_COLOR = (88, 206, 169)
 
 # Adjust ratio to use full resolution of the drawing
+# Without ratio, dimensions matches the AI design file
 RATIO = 2.0
 
+MARKER_TOP = 10*RATIO
 MARKER_SIZE = 140*RATIO
 BOARD_WIDTH = 650*RATIO
 BOARD_HEIGHT = 250*RATIO
-DOG_DRAW_LEFT = 290*RATIO
-DOG_DRAW_WIDTH = 200*RATIO
-DOG_DRAW_HEIGHT = 140*RATIO
+DOG_DRAW_LEFT = 270*RATIO
+DOG_DRAW_WIDTH = 220*RATIO
+DOG_DRAW_HEIGHT = 150*RATIO
+
+FLOAT_IDS = [12]
 
 CORNERS_REF = {
-    7: np.array([[0,0],
-                 [MARKER_SIZE,0],
-                 [MARKER_SIZE,MARKER_SIZE],
-                 [0,MARKER_SIZE]]),
-    23: np.array([[BOARD_WIDTH-MARKER_SIZE,0],
-                  [BOARD_WIDTH,0],
-                  [BOARD_WIDTH,MARKER_SIZE],
-                  [BOARD_WIDTH-MARKER_SIZE,MARKER_SIZE]]),
-    27: np.array([[BOARD_WIDTH-MARKER_SIZE,BOARD_HEIGHT+MARKER_SIZE],
-                  [BOARD_WIDTH,BOARD_HEIGHT+MARKER_SIZE],
-                  [BOARD_WIDTH,BOARD_HEIGHT+2*MARKER_SIZE],
-                  [BOARD_WIDTH-MARKER_SIZE,BOARD_HEIGHT+2*MARKER_SIZE]]),
-    42: np.array([[0,BOARD_HEIGHT+MARKER_SIZE],
-                  [MARKER_SIZE,BOARD_HEIGHT+MARKER_SIZE],
-                  [MARKER_SIZE,BOARD_HEIGHT+2*MARKER_SIZE],
-                  [0,BOARD_HEIGHT+2*MARKER_SIZE]]),
+    7: np.array([[0,MARKER_TOP],
+                 [MARKER_SIZE,MARKER_TOP],
+                 [MARKER_SIZE,MARKER_SIZE+MARKER_TOP],
+                 [0,MARKER_SIZE+MARKER_TOP]]),
+    23: np.array([[BOARD_WIDTH-MARKER_SIZE,MARKER_TOP],
+                  [BOARD_WIDTH,MARKER_TOP],
+                  [BOARD_WIDTH,MARKER_SIZE+MARKER_TOP],
+                  [BOARD_WIDTH-MARKER_SIZE,MARKER_SIZE+MARKER_TOP]]),
+    27: np.array([[BOARD_WIDTH-MARKER_SIZE,BOARD_HEIGHT+MARKER_SIZE+MARKER_TOP],
+                  [BOARD_WIDTH,BOARD_HEIGHT+MARKER_SIZE+MARKER_TOP],
+                  [BOARD_WIDTH,BOARD_HEIGHT+2*MARKER_SIZE+MARKER_TOP],
+                  [BOARD_WIDTH-MARKER_SIZE,BOARD_HEIGHT+2*MARKER_SIZE+MARKER_TOP]]),
+    42: np.array([[0,BOARD_HEIGHT+MARKER_SIZE+MARKER_TOP],
+                  [MARKER_SIZE,BOARD_HEIGHT+MARKER_SIZE+MARKER_TOP],
+                  [MARKER_SIZE,BOARD_HEIGHT+2*MARKER_SIZE+MARKER_TOP],
+                  [0,BOARD_HEIGHT+2*MARKER_SIZE+MARKER_TOP]]),
 }
-BOARD_REF = np.array([[0,MARKER_SIZE],
-                      [BOARD_WIDTH,MARKER_SIZE],
-                      [BOARD_WIDTH,BOARD_HEIGHT+MARKER_SIZE],
-                      [0,BOARD_HEIGHT+MARKER_SIZE]])
+BOARD_REF = np.array([[0,MARKER_SIZE+MARKER_TOP],
+                      [BOARD_WIDTH,MARKER_SIZE+MARKER_TOP],
+                      [BOARD_WIDTH,BOARD_HEIGHT+MARKER_SIZE+MARKER_TOP],
+                      [0,BOARD_HEIGHT+MARKER_SIZE+MARKER_TOP]])
 DOG_DRAW_REF = np.array([[DOG_DRAW_LEFT, 0],
                          [DOG_DRAW_LEFT+DOG_DRAW_WIDTH, 0],
                          [DOG_DRAW_LEFT+DOG_DRAW_WIDTH, DOG_DRAW_HEIGHT],
                          [DOG_DRAW_LEFT, DOG_DRAW_HEIGHT]])
 INFO_REF = np.array([BOARD_REF[0,0]+20,BOARD_REF[0,1]+20])
 
+# PARAMS dimension matches AI design file
+# Time ratio to match the size of board
 DEFAULT_PARAMS = {
-    'base': {'x': 50, 'y': 70, 'theta': 0},
+    'base': {'x': 60, 'y': 65, 'theta': 0},
     'base_neck': {'theta': 0, 'l': 80}, # Main bone
-    'neck_head': {'theta': -60, 'l': 45},
-    'head_nose': {'theta': 60, 'l': 25},
-    'hip': {'x': -80, 'y': 10, 'theta': 0},
+    'neck_head': {'theta': -45, 'l': 40},
+    'head_nose': {'theta': 45, 'l': 25},
+    'hip': {'x': -80, 'y': 15, 'theta': 0},
     'hip_rear_foot': {'theta': 90, 'l': 50},
-    'shoulder': {'x': 0, 'y': 10, 'theta': 0},
+    'shoulder': {'x': 0, 'y': 15, 'theta': 0},
     'shoulder_front_foot': {'theta': 90, 'l': 50},
-    'bottom': {'x': -80, 'y': 0, 'theta': 0},
-    'bottom_tail': {'theta': 150, 'l': 40},
-    'breast': {'x': -10, 'y': 15, 'theta': 0},
+    'bottom': {'x': -90, 'y': 0, 'theta': 0},
+    'bottom_tail': {'theta': 135, 'l': 40},
+    'breast': {'x': -10, 'y': 30, 'theta': 0},
     'breast_belly': {'theta': 180, 'l': 50},
 }
 
@@ -63,15 +69,15 @@ WALK_RIGHT_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
 WALK_RIGHT_PARAMS['hip_rear_foot']['theta'] = 60
 WALK_RIGHT_PARAMS['shoulder_front_foot']['theta'] = 60
 WALK_RIGHT_PARAMS['bottom_tail']['theta'] = 180
-WALK_RIGHT_PARAMS['neck_head']['theta'] = -50
-WALK_RIGHT_PARAMS['head_nose']['theta'] = 50
+WALK_RIGHT_PARAMS['neck_head']['theta'] = -30
+WALK_RIGHT_PARAMS['head_nose']['theta'] = 30
 
 WALK_LEFT_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
 WALK_LEFT_PARAMS['hip_rear_foot']['theta'] = 120
 WALK_LEFT_PARAMS['shoulder_front_foot']['theta'] = 120
 WALK_LEFT_PARAMS['bottom_tail']['theta'] = 180
-WALK_LEFT_PARAMS['neck_head']['theta'] = -50
-WALK_LEFT_PARAMS['head_nose']['theta'] = 50
+WALK_LEFT_PARAMS['neck_head']['theta'] = -30
+WALK_LEFT_PARAMS['head_nose']['theta'] = 30
 
 WALK_FRONT_PARAMS = [
     DEFAULT_PARAMS,
@@ -133,23 +139,20 @@ RUN_BACK_PARAMS = [
 ]
 
 REST_1_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
-REST_1_PARAMS['breast']['y'] = 11
-REST_1_PARAMS['bottom_tail']['theta'] = 120
+REST_1_PARAMS['breast']['y'] = 26
+REST_1_PARAMS['head_nose']['theta'] = 50
 
 REST_2_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
-REST_2_PARAMS['breast']['y'] = 9
-REST_2_PARAMS['bottom_tail']['theta'] = 120
-REST_2_PARAMS['head_nose']['theta'] = 65
+REST_2_PARAMS['breast']['y'] = 24
+REST_2_PARAMS['head_nose']['theta'] = 50
 
 REST_3_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
-REST_3_PARAMS['breast']['y'] = 11
-REST_3_PARAMS['bottom_tail']['theta'] = 120
-REST_3_PARAMS['head_nose']['theta'] = 65
+REST_3_PARAMS['breast']['y'] = 26
+REST_3_PARAMS['head_nose']['theta'] = 45
 
 REST_4_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
-REST_4_PARAMS['breast']['y'] = 15
-REST_4_PARAMS['bottom_tail']['theta'] = 120
-REST_4_PARAMS['head_nose']['theta'] = 65
+REST_4_PARAMS['breast']['y'] = 30
+REST_4_PARAMS['head_nose']['theta'] = 45
 
 REST_PARAMS = [
     REST_1_PARAMS,

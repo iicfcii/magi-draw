@@ -4,7 +4,7 @@ import numpy as np
 dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 
 img_marker = np.zeros((200, 200), dtype=np.uint8)
-marker_count = 4
+marker_count = 1
 for i in range(marker_count):
     index = np.random.randint(50)
     img_marker = cv2.aruco.drawMarker(dictionary, index, 200, None, 1);

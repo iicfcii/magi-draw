@@ -363,3 +363,11 @@ def merge_frames(front, back):
     # cv2.waitKey(0)
 
     return img_new, anchor_new, mask_new
+
+def flip_frame(frame):
+    img, anchor, mask = frame
+    img_new = cv2.flip(img, 1)
+    anchor_new = (img.shape[1]-anchor[0]-1,anchor[1])
+    mask_new = cv2.flip(mask, 1)
+
+    return (img_new, anchor_new, mask_new)
