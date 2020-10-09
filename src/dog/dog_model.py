@@ -15,9 +15,15 @@ class DogModel:
 
         self.head_right = True
 
+        d = int(WAND_CIRCLE_DIAMETER)
+        r = int(d/2)
+        self.circle_template = np.zeros((d,d), dtype=np.uint8)
+        self.circle_template = cv2.circle(self.circle_template,(r,r),r,255,-1)
+        # cv2.imshow('template', self.circle_template)
+        # cv2.waitKey()
+
     def update(self):
         self.x = self.x + self.vx
-
 
         if self.head_right:
             if self.x+HEAD_OFFSET > BOARD_WIDTH:
@@ -54,8 +60,6 @@ class DogModel:
             if dist_head < 0: dist = dist_head
             if dist_tail > 0:  dist = dist_tail
 
-        # print(center, dist)
-
         if dist != 0:
             if dist > 0:
                 vx = MAX_VX
@@ -75,58 +79,51 @@ class DogModel:
     def find_goal(self, img, mat):
         if mat is None: return None
 
+        padding = 100
         # Find black circle
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # ret, img = cv2.threshold(img,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+        mat_translated = np.array([[1,0,-padding],[0,1,-padding],[0,0,1]])
+        mat_padded =  mat.copy() @ mat_translated
+        size = (int(BOARD_WIDTH+padding*2),int(BOARD_HEIGHT+MARKER_SIZE*2+padding*2))
+        img = cv2.warpPerspective(img, mat_padded, size, flags=cv2.WARP_INVERSE_MAP)
         img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 401, 60)
         img = cv2.morphologyEx(img, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT,(3,3)), borderValue=0, iterations=5)
         img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT,(3,3)), borderValue=0, iterations=5)
 
-        center = None
         contours, hierarchy = cv2.findContours(img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-
-        rects = []
+        similarity = []
         for contour in contours:
-            rect = cv2.boundingRect(contour)
-            # img = cv2.rectangle(img, rect, 127)
-            aspect_ratio = rect[2]/rect[3]
-            # area = cv2.contourArea(contour)
-            if rect[2] > 20 and \
-               rect[3] > 20 and \
-               rect[2] < 100 and \
-               rect[3] < 100 and \
-               aspect_ratio < 2 and \
-               aspect_ratio > 0.8:
-                rects.append(rect)
-            else:
-                img = cv2.fillPoly(img, [contour], 0)
+            x,y,w,h = cv2.boundingRect(contour)
+            if w > 80 and h > 80 and \
+               w < 120 and h < 120:
+                r = int(WAND_CIRCLE_DIAMETER/2)
+                x_center = int(x+w/2)
+                y_center = int(y+h/2)
 
-        rect = None
-        if len(rects) > 1:
-            dist = []
-            for i in range(0,len(rects)-1):
-                for j in range(i+1,len(rects)):
-                    center_i = (rects[i][0]+rects[i][2]/2,rects[i][1]+rects[i][3]/2)
-                    center_j = (rects[j][0]+rects[j][2]/2,rects[j][1]+rects[j][3]/2)
+                if x_center-r < 0 or y_center-r < 0 or \
+                   x_center+r > img.shape[1]-1 or y_center+r > img.shape[0]-1:
+                   continue # Size not correct
 
-                    # Calculate actual distance based on rect size
-                    size_avg = (rects[i][2]+rects[i][3]+rects[j][2]+rects[j][3])/4 # Average width or height
+                img_contour = img[y_center-r:y_center+r,x_center-r:x_center+r]
+                img_contour = cv2.bitwise_xor(img_contour, self.circle_template)
+                similarity.append(((x_center,y_center),np.sum(img_contour)/255))
+                # cv2.imshow('img contour', img_contour)
+                # cv2.waitKey()
 
-                    # difference between actual distance and distance bewteen rects
-                    dist.append((np.absolute((center_i[0]-center_j[0])**2+(center_i[1]-center_j[1])**2-(size_avg*1.5)**2),i,j,size_avg))
-            dist.sort(key=lambda d:d[0])
-            if dist[0][0] < (dist[0][3]*1.5)**2:
-                rect_a = np.array(rects[dist[0][1]])
-                rect_b = np.array(rects[dist[0][2]])
-                rect = (rect_a+rect_b)/2
+        similarity.sort(key=lambda r:r[1])
 
-        center_board = None
-        if rect is not None:
-            center = np.array([[[rect[0]+rect[2]/2,rect[1]+rect[3]/2]]], dtype=np.float) # Assume only one circle will be found
-            center_board = cv2.perspectiveTransform(center, np.linalg.inv(mat)).reshape((2,1))
+        if len(similarity) >= 2:
+            p1 = similarity[0][0]
+            p2 = similarity[1][0]
 
-        # if rect is not None: img = cv2.circle(img,(int(center[0,0,0]),int(center[0,0,1])),3,255,-1)
+
+            center = ((p1[0]+p2[0])/2-padding, (p1[1]+p2[1])/2-padding)
+        else:
+            center = None
+
+        # if center is not None: img = cv2.circle(img,(int(center[0]+padding),int(center[1]+padding)),5,255,-1)
+        # img = cv2.resize(img, None, fx=0.5,fy=0.5)
         # cv2.imshow('img', img)
-        # cv2.waitKey(20)
+        # cv2.waitKey(10)
 
-        return center_board
+        return center

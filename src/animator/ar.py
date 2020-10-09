@@ -21,6 +21,8 @@ def homography(img, corners_ref, float_ids=[]):
 
     # img_tmp = img.copy()
     # img_tmp = cv2.aruco.drawDetectedMarkers(img_tmp, corners, ids)
+    # cv2.imshow('img', img_tmp)
+    # cv2.waitKey()
 
     # Find Homography
     corners_dst = []
