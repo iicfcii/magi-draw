@@ -7,7 +7,7 @@ class Animation:
         self.frames = frames
         self.ptr = 0
         self.delay = delay
-        self.delay_count = 1
+        self.delay_count = 0
 
     def frame(self):
         return self.frames[self.ptr]
@@ -22,7 +22,7 @@ class Animation:
                 self.ptr = 0
             else:
                 self.ptr += 1
-            self.delay_count = 1
+            self.delay_count = 0
         else:
             pass
 
@@ -55,7 +55,7 @@ class Animator:
     def update(self):
         pass
 
-    def generate_animation(self, bones_frames, hide=[], delay=1):
+    def generate_animation(self, bones_frames, hide=[], delay=0):
         frames = []
 
         for i in range(len(bones_frames)):

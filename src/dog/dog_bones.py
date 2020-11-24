@@ -161,6 +161,79 @@ REST_PARAMS = [
     REST_4_PARAMS,
 ]
 
+LOOK_UP_1_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+LOOK_UP_1_PARAMS['neck_head']['theta'] = -60
+LOOK_UP_1_PARAMS['bottom_tail']['theta'] = 160
+LOOK_UP_1_PARAMS['base_neck']['theta'] = -40
+LOOK_UP_1_PARAMS['shoulder_front_foot']['theta'] = 40
+LOOK_UP_1_PARAMS['hip_rear_foot']['theta'] = 120
+
+LOOK_UP_2_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+LOOK_UP_2_PARAMS['neck_head']['theta'] = -65
+LOOK_UP_2_PARAMS['bottom_tail']['theta'] = 150
+LOOK_UP_2_PARAMS['base_neck']['theta'] = -30
+LOOK_UP_2_PARAMS['shoulder_front_foot']['theta'] = 50
+LOOK_UP_2_PARAMS['hip_rear_foot']['theta'] = 110
+
+LOOK_UP_3_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+LOOK_UP_3_PARAMS['neck_head']['theta'] = -80
+LOOK_UP_3_PARAMS['bottom_tail']['theta'] = 120
+
+LOOK_UP_4_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+LOOK_UP_4_PARAMS['neck_head']['theta'] = -60
+LOOK_UP_4_PARAMS['bottom_tail']['theta'] = 110
+
+LOOK_UP_PARAMS = [
+    LOOK_UP_1_PARAMS,
+    LOOK_UP_2_PARAMS,
+    LOOK_UP_3_PARAMS,
+    LOOK_UP_4_PARAMS,
+    LOOK_UP_3_PARAMS,
+]
+
+LOOK_DOWN_1_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+LOOK_DOWN_1_PARAMS['neck_head']['theta'] = -10
+LOOK_DOWN_1_PARAMS['bottom_tail']['theta'] = 150
+LOOK_DOWN_1_PARAMS['base_neck']['theta'] = 10
+LOOK_DOWN_1_PARAMS['shoulder_front_foot']['theta'] = 110
+LOOK_DOWN_1_PARAMS['hip_rear_foot']['theta'] = 70
+
+LOOK_DOWN_2_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+LOOK_DOWN_2_PARAMS['neck_head']['theta'] = 10
+LOOK_DOWN_2_PARAMS['bottom_tail']['theta'] = 190
+LOOK_DOWN_2_PARAMS['base_neck']['theta'] = 15
+LOOK_DOWN_2_PARAMS['shoulder_front_foot']['theta'] = 120
+LOOK_DOWN_2_PARAMS['hip_rear_foot']['theta'] = 70
+
+LOOK_DOWN_3_PARAMS = copy.deepcopy(LOOK_DOWN_2_PARAMS)
+LOOK_DOWN_3_PARAMS['neck_head']['l'] = 50
+LOOK_DOWN_3_PARAMS['neck_head']['theta'] = 15
+
+LOOK_DOWN_4_PARAMS = copy.deepcopy(LOOK_DOWN_2_PARAMS)
+LOOK_DOWN_4_PARAMS['neck_head']['l'] = 50
+LOOK_DOWN_4_PARAMS['neck_head']['theta'] = 10
+
+LOOK_DOWN_PARAMS = [
+    LOOK_DOWN_1_PARAMS,
+    LOOK_DOWN_2_PARAMS,
+    LOOK_DOWN_3_PARAMS,
+    LOOK_DOWN_4_PARAMS,
+    LOOK_DOWN_3_PARAMS,
+    LOOK_DOWN_4_PARAMS
+]
+
+HAPPY_1_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+HAPPY_1_PARAMS['bottom_tail']['theta'] = 170
+HAPPY_1_PARAMS['head_nose']['theta'] = 40
+
+HAPPY_2_PARAMS = copy.deepcopy(DEFAULT_PARAMS)
+HAPPY_2_PARAMS['bottom_tail']['theta'] = -150
+HAPPY_1_PARAMS['head_nose']['theta'] = 50
+
+HAPPY_PARAMS = [
+    HAPPY_1_PARAMS,
+    HAPPY_2_PARAMS
+]
 
 def params2bones(params):
     origin = [[0],[0],[1]] # Origin of each coordinate system

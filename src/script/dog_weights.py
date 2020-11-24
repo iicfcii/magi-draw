@@ -54,6 +54,8 @@ for i in range(len(animator.bones)):
     cv2.imshow('Weights' + str(i),img_tmp)
 cv2.waitKey(0)
 
+animator.model.look='happy'
+
 while True:
     animator.update()
     img_frame, anchor_frame, mask_frame = animator.current_frame

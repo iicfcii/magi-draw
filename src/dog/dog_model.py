@@ -18,6 +18,7 @@ class DogModel:
         self.WALK_VX = 8
 
         self.head_right = True
+        self.look = None
 
         d = int(WAND_CIRCLE_DIAMETER)
         r = int(d/2)
@@ -52,6 +53,8 @@ class DogModel:
         center = self.find_goal(img, mat)
 
         if center is None:
+            self.look = None
+
             # Walk left/right or rest for a random period
             if self.max_walk_count is None:
                 self.max_walk_count = np.floor(np.random.rand()*20+30)
@@ -98,6 +101,13 @@ class DogModel:
                 self.set_head_right()
             else:
                 self.vx = 0
+                # print(center)
+                if center[1] < 350:
+                    self.look = 'up'
+                elif center[1] > 850:
+                    self.look = 'down'
+                else:
+                    self.look = 'happy'
 
             if np.absolute(self.vx) < 1: self.vx = 0
 
