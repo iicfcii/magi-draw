@@ -9,7 +9,8 @@ from dog.dog_bones import *
 
 # img = cv2.imread('img/dog_game_4_sd.jpg')
 
-vid = cv2.VideoCapture('img/dog_game_video_4.MOV')
+# vid = cv2.VideoCapture('img/dog_game_video_4.MOV')
+vid = cv2.VideoCapture(0)
 
 while vid.isOpened():
     ret, img = vid.read()

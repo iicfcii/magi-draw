@@ -2,10 +2,12 @@ from animator.triangulation import *
 from animator.animation import *
 
 class Animation:
-    def __init__(self, frames):
+    def __init__(self, frames, delay):
         assert len(frames) != 0
         self.frames = frames
         self.ptr = 0
+        self.delay = delay
+        self.delay_count = 1
 
     def frame(self):
         return self.frames[self.ptr]
@@ -14,10 +16,15 @@ class Animation:
         self.ptr = 0
 
     def update(self):
-        if self.ptr == len(self.frames)-1:
-            self.ptr = 0
+        self.delay_count += 1
+        if self.delay_count > self.delay:
+            if self.ptr == len(self.frames)-1:
+                self.ptr = 0
+            else:
+                self.ptr += 1
+            self.delay_count = 1
         else:
-            self.ptr += 1
+            pass
 
 class Animator:
     def __init__(self, drawing, bones):
@@ -48,7 +55,7 @@ class Animator:
     def update(self):
         pass
 
-    def generate_animation(self, bones_frames, hide=[]):
+    def generate_animation(self, bones_frames, hide=[], delay=1):
         frames = []
 
         for i in range(len(bones_frames)):
@@ -72,4 +79,4 @@ class Animator:
 
                 frames.append((img_n, anchor, mask_img_n))
 
-        return Animation(frames)
+        return Animation(frames,delay)

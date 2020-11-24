@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 import time
 
 from animator.animator import Animator
@@ -12,10 +13,10 @@ class DogAnimator(Animator):
 
         # Generate custom animation
         t_start = time.time()
-        self.walk_front = self.generate_animation(params2frames(WALK_FRONT_PARAMS))
-        self.walk_back = self.generate_animation(params2frames(WALK_BACK_PARAMS), hide=[0,1,2,5])
+        self.walk_front = self.generate_animation(params2frames(WALK_FRONT_PARAMS),delay=2)
+        self.walk_back = self.generate_animation(params2frames(WALK_BACK_PARAMS),hide=[0,1,2,5],delay=2)
         self.run_front = self.generate_animation(params2frames(RUN_FRONT_PARAMS))
-        self.run_back = self.generate_animation(params2frames(RUN_BACK_PARAMS), hide=[0,1,2,5])
+        self.run_back = self.generate_animation(params2frames(RUN_BACK_PARAMS),hide=[0,1,2,5])
 
         self.rest = self.generate_animation(params2frames(REST_PARAMS))
 
@@ -29,7 +30,7 @@ class DogAnimator(Animator):
             else:
                 self.current_frame = flip_frame(self.rest.frame())
             self.rest.update()
-        else:
+        elif np.abs(self.model.vx) <= self.model.WALK_VX:
             frame = merge_frames(self.walk_front.frame(), self.walk_back.frame())
             if self.model.head_right:
                 self.current_frame = frame
@@ -37,6 +38,14 @@ class DogAnimator(Animator):
                 self.current_frame = flip_frame(frame)
             self.walk_front.update()
             self.walk_back.update()
+        else:
+            frame = merge_frames(self.run_front.frame(), self.run_back.frame())
+            if self.model.head_right:
+                self.current_frame = frame
+            else:
+                self.current_frame = flip_frame(frame)
+            self.run_front.update()
+            self.run_back.update()
 
         # self.current_frame = merge_frames(self.run_front.frame(), self.run_back.frame())
         # self.run_front.update()
