@@ -3,6 +3,8 @@ import cv2
 import PIL.Image, PIL.ImageTk
 
 from snake.snake_game import SnakeGame
+from dog.dog_game import DogGame
+from game_view import GameView
 
 GAME_VIEW_WIDTH = 1280
 GAME_VIEW_HEIGHT = 720
@@ -10,7 +12,7 @@ GAME_VIEW_HEIGHT = 720
 class App:
     def __init__(self):
         self.window = Tk()
-        self.window.title('Orimagi Draw Demo')
+        self.window.title('MagiDraw Demo')
 
 
         self.key_manager = KeyManager()
@@ -19,7 +21,8 @@ class App:
         self.vid = VideoCapture(GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT)
 
         self.home_view = HomeView(self.window)
-        self.snake_view = SnakeView(self.window, self.vid, self.key_manager)
+        self.snake_view = GameView(self.window, self.vid, self.key_manager, SnakeGame, (GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT))
+        self.dog_view = GameView(self.window, self.vid, self.key_manager, DogGame, (GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT))
         self.menu_view = MenuView(self.window, self.show_view, self.key_manager, self.vid)
         self.show_view('home')
 
@@ -27,12 +30,19 @@ class App:
 
     def show_view(self, view):
         if view == 'snake':
+            self.dog_view.frame.pack_forget()
             self.home_view.frame.pack_forget()
             self.snake_view.frame.pack()
+
+        if view == 'dog':
+            self.snake_view.frame.pack_forget()
+            self.home_view.frame.pack_forget()
+            self.dog_view.frame.pack()
 
         if view == 'home':
             self.home_view.frame.pack()
             self.snake_view.frame.pack_forget()
+            self.dog_view.frame.pack_forget()
 
 class MenuView:
     def __init__(self, window, show_view, key_manager, vid):
@@ -46,6 +56,8 @@ class MenuView:
         self.home_button.pack(padx=5, pady=5, side=LEFT)
         self.snake_button = Button(self.frame, text="Snake", font=('Arial', '12'), command=self.show_snake)
         self.snake_button.pack(padx=5, pady=5, side=LEFT)
+        self.dog_button = Button(self.frame, text="Dog", font=('Arial', '12'), command=self.show_dog)
+        self.dog_button.pack(padx=5, pady=5, side=LEFT)
 
         if len(self.vid.available) > 0:
             self.vid_id = IntVar(self.frame)
@@ -69,6 +81,10 @@ class MenuView:
         self.key_manager.set(None)
         self.show_view('snake')
 
+    def show_dog(self):
+        self.key_manager.set(None)
+        self.show_view('dog')
+
     def show_home(self):
         self.key_manager.set(None)
         self.show_view('home')
@@ -86,36 +102,6 @@ class HomeView:
                                 justify=CENTER,
                                 font= ('Arial', '32'))
 
-class SnakeView:
-    def __init__(self, window, vid, key_manager):
-        self.vid = vid
-
-        self.key_manager = key_manager
-
-        self.frame = Frame(window)
-        self.frame.pack()
-
-        self.canvas = Canvas(self.frame, width=GAME_VIEW_WIDTH, height=GAME_VIEW_HEIGHT)
-        self.canvas.pack(side=TOP)
-
-        self.game = SnakeGame()
-
-        self.update()
-
-    def update(self):
-        if self.frame.winfo_ismapped():
-            img = self.game.update(self.vid.get_frame(), self.key_manager.get())
-            self.key_manager.set(None)
-
-            # Draw on canvas
-            if img is not None:
-                self.img = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)))
-                self.canvas.create_image(0, 0, image=self.img, anchor=NW)
-        else:
-            self.game.reset()
-
-        self.frame.after(10, self.update)
-
 class KeyManager:
     def __init__(self):
         self.keycode = None
@@ -132,8 +118,6 @@ class KeyManager:
 
 class VideoCapture:
     def __init__(self, width, height):
-        # self.vid = cv2.VideoCapture('img/snake_game_video_4.MOV')
-
         self.available = []
         for i in range(5):
             vid = cv2.VideoCapture(i)

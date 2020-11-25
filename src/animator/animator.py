@@ -1,11 +1,13 @@
-import animator.triangulation as triangulation
+from animator.triangulation import *
 from animator.animation import *
 
 class Animation:
-    def __init__(self, frames):
+    def __init__(self, frames, delay):
         assert len(frames) != 0
         self.frames = frames
         self.ptr = 0
+        self.delay = delay
+        self.delay_count = 0
 
     def frame(self):
         return self.frames[self.ptr]
@@ -14,10 +16,15 @@ class Animation:
         self.ptr = 0
 
     def update(self):
-        if self.ptr == len(self.frames)-1:
-            self.ptr = 0
+        self.delay_count += 1
+        if self.delay_count > self.delay:
+            if self.ptr == len(self.frames)-1:
+                self.ptr = 0
+            else:
+                self.ptr += 1
+            self.delay_count = 0
         else:
-            self.ptr += 1
+            pass
 
 class Animator:
     def __init__(self, drawing, bones):
@@ -28,11 +35,11 @@ class Animator:
         # Skinning(triangulation and weight calculation)
         t_start = time.time()
         img_gray = cv2.cvtColor(self.drawing, cv2.COLOR_BGR2GRAY)
-        contour = triangulation.contour(img_gray)
-        keypoints = triangulation.keypoints_uniform(img_gray, contour)
-        triangles_unconstrained, edges = triangulation.triangulate(contour, keypoints)
+        contour = find_contour(img_gray)
+        keypoints = keypoints_uniform(img_gray, contour)
+        triangles_unconstrained, edges = triangulate(contour, keypoints)
         t_tri = time.time()-t_start
-        self.triangles = triangulation.constrain(contour, triangles_unconstrained, edges)
+        self.triangles = constrain(contour, triangles_unconstrained, edges)
         t_constrain = time.time()-t_start-t_tri
         self.weights = calcWeights(self.bones, self.triangles)
         t_weights = time.time()-t_start-t_constrain
@@ -41,12 +48,14 @@ class Animator:
         # print('Constrained Triangulation', t_constrain)
         # print('Weights', t_weights)
 
+        self.triangles, self.relations = sortTriangles(self.triangles, self.weights)
+
         self.current_frame = None
 
     def update(self):
         pass
 
-    def generate_animation(self, bones_frames):
+    def generate_animation(self, bones_frames, hide=[], delay=0):
         frames = []
 
         for i in range(len(bones_frames)):
@@ -62,8 +71,7 @@ class Animator:
             else:
                 bones_n = bones_frames[i]
                 triangles_next = animate(self.bones,bones_n,self.triangles,self.weights)
-                img_n, anchor, mask_img_n = warp(self.drawing, self.triangles, triangles_next, bones_n[0])
-
+                img_n, anchor, mask_img_n = warp(self.drawing, self.triangles, triangles_next, bones_n[0], self.relations, hide=hide)
 
                 img_n = cv2.resize(img_n, None, fx=self.ratio, fy=self.ratio)
                 anchor = anchor*self.ratio
@@ -71,4 +79,4 @@ class Animator:
 
                 frames.append((img_n, anchor, mask_img_n))
 
-        return Animation(frames)
+        return Animation(frames,delay)

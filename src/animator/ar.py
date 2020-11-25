@@ -9,32 +9,48 @@ PARA.adaptiveThreshWinSizeMin = 3
 PARA.adaptiveThreshWinSizeMax = 53
 PARA.adaptiveThreshWinSizeStep = 10
 
-def homography(img, corners_ref):
+def homography(img, corners_ref, float_ids=[]):
     # Detect markers
     corners, ids, rejects = cv2.aruco.detectMarkers(img, DICT, parameters=PARA) # Default parameters
     if ids is None:
         # print('No ids')
-        return None
+        if len(float_ids) == 0:
+            return None
+        else:
+            return None, []
+
     # img_tmp = img.copy()
     # img_tmp = cv2.aruco.drawDetectedMarkers(img_tmp, corners, ids)
+    # cv2.imshow('img', img_tmp)
+    # cv2.waitKey()
 
     # Find Homography
     corners_dst = []
     corners_src = []
+    corners_float = []
     for i, id in enumerate(ids):
         if id[0] in corners_ref:
             corners_src.append(corners_ref[id[0]])
             corners_dst.append(corners[i])
+        if id[0] in float_ids:
+            corners_float.append(corners[i])
 
     if len(corners_src) == 0:
-        # print('No correct ids')
-        return None # Detected wrong markers
+        # Detected wrong markers
+        if len(float_ids) == 0:
+            return None
+        else:
+            return None, corners_float
 
     corners_dst = np.concatenate(corners_dst).reshape(-1,2)
     corners_src = np.concatenate(corners_src).reshape(-1,2)
 
     M, mask = cv2.findHomography(corners_src,corners_dst)
-    return M
+
+    if len(float_ids) == 0:
+        return M
+    else:
+        return M, corners_float
 
 def drawing(img, M, draw_ref):
     # Warp drawing
