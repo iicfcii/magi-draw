@@ -1,6 +1,9 @@
 from tkinter import *
 import cv2
 import PIL.Image, PIL.ImageTk
+import webbrowser
+import os
+import sys
 
 from snake.snake_game import SnakeGame
 from dog.dog_game import DogGame
@@ -94,13 +97,37 @@ class HomeView:
         self.frame = Frame(window)
         self.frame.pack()
 
-        self.canvas = Canvas(self.frame, width=GAME_VIEW_WIDTH, height=GAME_VIEW_HEIGHT)
-        self.canvas.pack(side=BOTTOM)
-
-        self.canvas.create_text((GAME_VIEW_WIDTH/2,GAME_VIEW_HEIGHT/2),
+        w = 600
+        h = 100
+        self.canvas = Canvas(self.frame, width=w, height=h)
+        self.canvas.pack()
+        self.canvas.create_text((w/2,h/2),
                                 text='Welcome to MagiDraw!',
                                 justify=CENTER,
                                 font= ('Arial', '32'))
+
+        self.board_frame = Frame(self.frame)
+        self.board_frame.pack(pady=(0,20),side=BOTTOM)
+
+        self.label = Label(self.board_frame, text='Open Draw Board', font=('Arial', '10'))
+        self.label.pack(padx=5, pady=5, side=LEFT)
+
+        self.snake_button = Button(self.board_frame, text="Snake", font=('Arial', '10'),command=self.open_snake)
+        self.snake_button.pack(padx=5, pady=5, side=LEFT)
+
+        self.dog_button = Button(self.board_frame, text="Dog", font=('Arial', '10'),command=self.open_dog)
+        self.dog_button.pack(padx=5, pady=5, side=LEFT)
+
+
+    def open_snake(self):
+        # For debugging, make sure script is ran from magi-draw
+        # Build should be fine
+        path = resource_path(os.path.join('.','img','snake.pdf'))
+        webbrowser.open(path)
+
+    def open_dog(self):
+        path = resource_path(os.path.join('.','img','dog.pdf'))
+        webbrowser.open(path)
 
 class KeyManager:
     def __init__(self):
@@ -151,6 +178,14 @@ class VideoCapture:
 
         return None
 
+def resource_path(relative_path):
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 if __name__ == '__main__':
     App()
