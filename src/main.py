@@ -109,7 +109,7 @@ class HomeView:
         self.board_frame = Frame(self.frame)
         self.board_frame.pack(pady=(0,20),side=BOTTOM)
 
-        self.label = Label(self.board_frame, text='Open Draw Board', font=('Arial', '10'))
+        self.label = Label(self.board_frame, text='Print Draw Board', font=('Arial', '10'))
         self.label.pack(padx=5, pady=5, side=LEFT)
 
         self.snake_button = Button(self.board_frame, text="Snake", font=('Arial', '10'),command=self.open_snake)
@@ -185,7 +185,11 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
 
-    return os.path.join(base_path, relative_path)
+    path = os.path.join(base_path, relative_path)
+    if sys.platform == 'darwin':
+        path = 'file://'+path
+
+    return path
 
 if __name__ == '__main__':
     App()
