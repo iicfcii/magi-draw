@@ -7,6 +7,7 @@ import sys
 
 from snake.snake_game import SnakeGame
 from dog.dog_game import DogGame
+from ball.ball_game import BallGame
 from game_view import GameView
 
 GAME_VIEW_WIDTH = 1280
@@ -26,6 +27,7 @@ class App:
         self.home_view = HomeView(self.window)
         self.snake_view = GameView(self.window, self.vid, self.key_manager, SnakeGame, (GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT))
         self.dog_view = GameView(self.window, self.vid, self.key_manager, DogGame, (GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT))
+        self.ball_view = GameView(self.window, self.vid, self.key_manager, BallGame, (GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT))
         self.menu_view = MenuView(self.window, self.show_view, self.key_manager, self.vid)
         self.show_view('home')
 
@@ -35,17 +37,26 @@ class App:
         if view == 'snake':
             self.dog_view.frame.pack_forget()
             self.home_view.frame.pack_forget()
+            self.ball_view.frame.pack_forget()
             self.snake_view.frame.pack()
 
         if view == 'dog':
             self.snake_view.frame.pack_forget()
             self.home_view.frame.pack_forget()
+            self.ball_view.frame.pack_forget()
             self.dog_view.frame.pack()
+
+        if view == 'ball':
+            self.snake_view.frame.pack_forget()
+            self.home_view.frame.pack_forget()
+            self.dog_view.frame.pack_forget()
+            self.ball_view.frame.pack()
 
         if view == 'home':
             self.home_view.frame.pack()
             self.snake_view.frame.pack_forget()
             self.dog_view.frame.pack_forget()
+            self.ball_view.frame.pack_forget()
 
 class MenuView:
     def __init__(self, window, show_view, key_manager, vid):
@@ -61,6 +72,8 @@ class MenuView:
         self.snake_button.pack(padx=5, pady=5, side=LEFT)
         self.dog_button = Button(self.frame, text="Dog", font=('Arial', '12'), command=self.show_dog)
         self.dog_button.pack(padx=5, pady=5, side=LEFT)
+        self.ball_button = Button(self.frame, text="Ball", font=('Arial', '12'), command=self.show_ball)
+        self.ball_button.pack(padx=5, pady=5, side=LEFT)
 
         if len(self.vid.available) > 0:
             self.vid_id = IntVar(self.frame)
@@ -87,6 +100,10 @@ class MenuView:
     def show_dog(self):
         self.key_manager.set(None)
         self.show_view('dog')
+
+    def show_ball(self):
+        self.key_manager.set(None)
+        self.show_view('ball')
 
     def show_home(self):
         self.key_manager.set(None)
@@ -118,6 +135,8 @@ class HomeView:
         self.dog_button = Button(self.board_frame, text="Dog", font=('Arial', '10'),command=self.open_dog)
         self.dog_button.pack(padx=5, pady=5, side=LEFT)
 
+        self.ball_button = Button(self.board_frame, text="Ball", font=('Arial', '10'),command=self.open_ball)
+        self.ball_button.pack(padx=5, pady=5, side=LEFT)
 
     def open_snake(self):
         # For debugging, make sure script is ran from magi-draw
@@ -127,6 +146,10 @@ class HomeView:
 
     def open_dog(self):
         path = resource_path(os.path.join('.','img','dog.pdf'))
+        webbrowser.open(path)
+
+    def open_ball(self):
+        path = resource_path(os.path.join('.','img','ball.pdf'))
         webbrowser.open(path)
 
 class KeyManager:
