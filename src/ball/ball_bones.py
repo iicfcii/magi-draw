@@ -46,61 +46,46 @@ BALL_DRAW_REF = np.array([[BALL_DRAW_LEFT, BALL_DRAW_TOP],
                           [BALL_DRAW_LEFT, BALL_DRAW_TOP+BALL_DRAW_SIZE]])
 INFO_REF = np.array([BOARD_REF[0,0]+20,BOARD_REF[0,1]+20])
 
-# # PARAMS dimension matches AI design file
-# # Times ratio to match the size of board
-# DEFAULT_PARAMS = {
-#     'base': {'x': 60, 'y': 65, 'theta': 0},
-# }
-#
-# def params2bones(params):
-#     origin = [[0],[0],[1]] # Origin of each coordinate system
-#
-#     T_base2w = t(params['base']['x'],params['base']['y'], deg2rad(params['base']['theta']))
-#     T_neck2base = t_line(params['base_neck']['l'], deg2rad(params['base_neck']['theta']))
-#     T_head2neck = t_line(params['neck_head']['l'], deg2rad(params['neck_head']['theta']))
-#     T_nose2head = t_line(params['head_nose']['l'], deg2rad(params['head_nose']['theta']))
-#
-#     T_hip2neck = t(params['hip']['x'],params['hip']['y'], deg2rad(params['hip']['theta']))
-#     T_rear_foot2hip = t_line(params['hip_rear_foot']['l'], deg2rad(params['hip_rear_foot']['theta']))
-#     T_shoulder2neck = t(params['shoulder']['x'],params['shoulder']['y'], deg2rad(params['shoulder']['theta']))
-#     T_front_foot2shoulder = t_line(params['shoulder_front_foot']['l'], deg2rad(params['shoulder_front_foot']['theta']))
-#     T_bottom2neck = t(params['bottom']['x'],params['bottom']['y'], deg2rad(params['bottom']['theta']))
-#     T_tail2bottom = t_line(params['bottom_tail']['l'], deg2rad(params['bottom_tail']['theta']))
-#
-#     T_breast2neck = t(params['breast']['x'],params['breast']['y'], deg2rad(params['breast']['theta']))
-#     T_belly2breast = t_line(params['breast_belly']['l'], deg2rad(params['breast_belly']['theta']))
-#
-#     p_base_world = (T_base2w @ origin)[0:2].reshape(2)
-#     p_neck_world = (T_base2w @ T_neck2base @ origin)[0:2].reshape(2)
-#     p_head_world = (T_base2w @ T_neck2base @ T_head2neck @ origin)[0:2].reshape(2)
-#     p_nose_world = (T_base2w @ T_neck2base @ T_head2neck @ T_nose2head @ origin)[0:2].reshape(2)
-#
-#     # p_hip_world should be the same as p_base_world
-#     p_hip_world = (T_base2w @ T_neck2base @ T_hip2neck @ origin)[0:2].reshape(2)
-#     p_rear_foot_world = (T_base2w @ T_neck2base @ T_hip2neck @ T_rear_foot2hip @ origin)[0:2].reshape(2)
-#     p_shoulder_world = (T_base2w @ T_neck2base @ T_shoulder2neck @ origin)[0:2].reshape(2)
-#     p_front_foot_world = (T_base2w @ T_neck2base @ T_shoulder2neck @ T_front_foot2shoulder @ origin)[0:2].reshape(2)
-#
-#     p_bottom_world = (T_base2w @ T_neck2base @ T_bottom2neck @ origin)[0:2].reshape(2)
-#     p_tail_world = (T_base2w @ T_neck2base @ T_bottom2neck @ T_tail2bottom @ origin)[0:2].reshape(2)
-#
-#     p_breast_world = (T_base2w @ T_neck2base @ T_breast2neck @ origin)[0:2].reshape(2)
-#     p_belly_world = (T_base2w @ T_neck2base @ T_breast2neck @ T_belly2breast @ origin)[0:2].reshape(2)
-#
-#     # Bones with larger index apear in the front
-#     bones = np.array([
-#         [p_base_world, p_neck_world], # base_neck
-#         [p_neck_world, p_head_world], # neck_head
-#         [p_head_world, p_nose_world], # head_nose
-#         [p_hip_world, p_rear_foot_world], # hip_rear_foot
-#         [p_shoulder_world, p_front_foot_world], # shoulder_front_foot
-#         [p_bottom_world, p_tail_world], # bottom_tail
-#         [p_belly_world, p_breast_world], # breast_belly
-#     ]).reshape((-1,4))
-#
-#     bones = bones*RATIO
-#
-#     return bones
-#
-# def params2frames(params):
-#     return params2bones_with_params2bones(params, params2bones)
+# PARAMS dimension matches AI design file
+# Times ratio to match the size of board
+DEFAULT_PARAMS = {
+    'base': {'x': 50, 'y': 50, 'theta': 0},
+    'base_top': {'theta': -90, 'l': 30},
+}
+
+CCW_PARAMS = [
+]
+CCW_NUM_STEP = 6
+for i in range(CCW_NUM_STEP):
+    ps = copy.deepcopy(DEFAULT_PARAMS)
+    ps['base_top']['theta'] = 90-(360/CCW_NUM_STEP)*i
+    CCW_PARAMS.append(ps)
+
+CW_PARAMS = [
+]
+for i in range(CCW_NUM_STEP):
+    ps = copy.deepcopy(DEFAULT_PARAMS)
+    ps['base_top']['theta'] = 90+(360/CCW_NUM_STEP)*i
+    CW_PARAMS.append(ps)
+
+
+def params2bones(params):
+    origin = [[0],[0],[1]] # Origin of each coordinate system
+
+    T_base2w = t(params['base']['x'],params['base']['y'], deg2rad(params['base']['theta']))
+    T_top2base = t_line(params['base_top']['l'], deg2rad(params['base_top']['theta']))
+
+    p_base_world = (T_base2w @ origin)[0:2].reshape(2)
+    p_top_world = (T_base2w @ T_top2base @ origin)[0:2].reshape(2)
+
+    # Bones with larger index apear in the front
+    bones = np.array([
+        [p_base_world, p_top_world],
+    ]).reshape((-1,4))
+
+    bones = bones*RATIO
+
+    return bones
+
+def params2frames(params):
+    return params2bones_with_params2bones(params, params2bones)

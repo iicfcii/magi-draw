@@ -5,11 +5,13 @@ import traceback
 import animator.ar as ar
 
 from ball.ball_bones import *
+from ball.ball_model import *
+from ball.ball_animator import *
 
 class BallGame:
     def __init__(self):
-        self.ball_model = None
-        self.ball_animator = None
+        self.model = None
+        self.animator = None
 
         # SCAN, PROCESS, GAME
         self.state = 'SCAN'
@@ -22,18 +24,17 @@ class BallGame:
 
         mat = ar.homography(img, CORNERS_REF)
         if mat is None: return False
-        img_ball_drawing = ar.drawing(img, mat, BALL_DRAW_REF)
+        img_drawing = ar.drawing(img, mat, BALL_DRAW_REF)
 
         def init():
             pass
-            # try:
-            #     self.dog_model = DogModel()
-            #     self.dog_animator = DogAnimator(img_dog_drawing, self.dog_model, params2bones(DEFAULT_PARAMS))
-            #     self.state = 'GAME'
-            # except Exception:
-            #     traceback.print_exc()
-            #     self.state = 'RETRY'
-
+            try:
+                self.model = BallModel()
+                self.animator = BallAnimator(img_drawing, self.model, params2bones(DEFAULT_PARAMS))
+                self.state = 'GAME'
+            except Exception:
+                traceback.print_exc()
+                self.state = 'RETRY'
 
         self.state = 'PROCESS'
         t = threading.Thread(target=init)
@@ -68,20 +69,19 @@ class BallGame:
         return img
 
     def render_game(self, img, mat):
-        pass
-        # if img is None: return None
-        # if mat is None: return img
-        #
-        # dog_frame = self.dog_animator.current_frame
-        # if dog_frame is None: return img
-        #
-        # dog_img = dog_frame[0]
-        # dog_anchor = dog_frame[1]
-        # dog_mask = dog_frame[2]
-        # dog_position = (int(self.dog_model.x-dog_anchor[0]), int(self.dog_model.y-dog_anchor[1]))
-        # img_render = ar.render(img, dog_img, dog_mask, dog_position, mat)
-        #
-        # return img_render
+        if img is None: return None
+        if mat is None: return img
+
+        frame = self.animator.current_frame
+        if frame is None: return img
+
+        imgf = frame[0]
+        anchor = frame[1]
+        mask = frame[2]
+        position = (int(self.model.x-anchor[0]), int(self.model.y-anchor[1]))
+        img_render = ar.render(img, imgf, mask, position, mat)
+
+        return img_render
 
     def update(self, img, key):
         if self.state == 'SCAN' or self.state == 'RETRY':
@@ -94,10 +94,9 @@ class BallGame:
             return self.render_process(img)
 
         if self.state == 'GAME':
-            pass
-            # mat = ar.homography(img, CORNERS_REF)
-            #
+            mat = ar.homography(img, CORNERS_REF)
+
             # self.dog_model.move(img, mat)
-            # self.dog_model.update()
-            # self.dog_animator.update()
-            # return self.render_game(img, mat)
+            self.model.update()
+            self.animator.update()
+            return self.render_game(img, mat)
