@@ -31,7 +31,14 @@ class BallModel:
         self.vy += self.ay
         self.y += self.vy
 
-        if self.y > BOARD_HEIGHT-RADIUS or self.y < 0:
+        if self.y > BOARD_HEIGHT-RADIUS:
+            self.ay = GRAVITY
+            self.ax = 0
+            self.vy = 0
+            self.vx = 0
+            self.y = BOARD_HEIGHT-RADIUS
+
+        if self.y < RADIUS:
             self.ay = GRAVITY
             self.ax = 0
             self.vy = 0
@@ -44,7 +51,6 @@ class BallModel:
             self.vy = 0
             self.vx = 0
             self.x = BOARD_REF[1,0]-RADIUS
-            # self.y = 0
 
         if self.x < BOARD_REF[0,0]+RADIUS:
             self.ay = GRAVITY
@@ -52,7 +58,6 @@ class BallModel:
             self.vy = 0
             self.vx = 0
             self.x = BOARD_REF[0,0]+RADIUS
-            # self.y = 0
 
     def move(self, img, mat):
         if img is None or mat is None: return
@@ -71,8 +76,8 @@ class BallModel:
             np.sum(marker_corners[1:3,0])-np.sum(marker_corners[[0,3],0])
         )
 
-        beam_left_local = np.array([-BEAM_WIDTH/2,-MARKER_SIZE/2-BEAM_HEIGHT,1])
-        beam_right_local = np.array([BEAM_WIDTH/2,-MARKER_SIZE/2-BEAM_HEIGHT,1])
+        beam_left_local = np.array([-BEAM_WIDTH/2,-MARKER_SIZE/2,1])
+        beam_right_local = np.array([BEAM_WIDTH/2,-MARKER_SIZE/2,1])
 
         T = t(center[0],center[1],angle)
         beam_left = (T @ beam_left_local)[0:2].reshape(2)
