@@ -4,7 +4,8 @@ pyinstaller --noconfirm --log-level=WARN \
     --name MagiDraw \
     ./src/main.py \
     --add-data=./img/snake.pdf:./img \
-    --add-data=./img/dog.pdf:./img
+    --add-data=./img/dog.pdf:./img \
+    --add-data=./img/ball.pdf:./img
 
 # Apply fix to the signle .app
 # https://github.com/pyinstaller/pyinstaller/issues/3820#issuecomment-515673901
