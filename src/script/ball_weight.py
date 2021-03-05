@@ -21,6 +21,9 @@ img_drawing = ar.drawing(img, mat, BALL_DRAW_REF)
 # cv2.imshow('Drawing', img_drawing)
 # cv2.waitKey(0)
 
+model = BallModel()
+model.move(img, mat)
+
 img_tmp = img_drawing.copy()
 for bone in params2bones(DEFAULT_PARAMS):
     bone = bone.astype(np.int32)
@@ -30,7 +33,7 @@ for bone in params2bones(DEFAULT_PARAMS):
 cv2.imshow('Default bones',img_tmp)
 cv2.waitKey(0)
 
-animator = BallAnimator(img_drawing, BallModel(), params2bones(DEFAULT_PARAMS))
+animator = BallAnimator(img_drawing, model, params2bones(DEFAULT_PARAMS))
 
 # img_tmp = animator.drawing.copy()
 # for triangle in animator.triangles:

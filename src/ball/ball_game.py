@@ -96,7 +96,7 @@ class BallGame:
         if self.state == 'GAME':
             mat = ar.homography(img, CORNERS_REF)
 
-            # self.dog_model.move(img, mat)
+            self.model.move(img, mat)
             self.model.update()
             self.animator.update()
             return self.render_game(img, mat)

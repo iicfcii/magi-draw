@@ -13,6 +13,7 @@ class BallAnimator(Animator):
 
         # Generate custom animation
         t_start = time.time()
+        self.rest = self.generate_animation(params2frames([DEFAULT_PARAMS]),delay=1)
         self.ccw = self.generate_animation(params2frames(CCW_PARAMS),delay=1)
         self.cw = self.generate_animation(params2frames(CW_PARAMS),delay=1)
 
@@ -20,5 +21,13 @@ class BallAnimator(Animator):
         # print('Animation', t_generate)
 
     def update(self):
-        self.current_frame = self.cw.frame()
-        self.cw.update()
+        vmin = 1
+        if np.abs(self.model.vx) < vmin:
+            self.current_frame = self.rest.frame()
+        else:
+            if self.model.vx < -vmin:
+                self.current_frame = self.cw.frame()
+                self.cw.update()
+            else:
+                self.current_frame = self.ccw.frame()
+                self.ccw.update()
